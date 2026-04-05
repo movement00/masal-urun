@@ -25,8 +25,15 @@ GÖREV: Bu kategori için ÖZGÜN bir çocuk kitabı konsepti üret.
 ÖZELLİKLER:
 - Özgün Türkçe başlık (maks 6 kelime, önceki başlıklardan FARKLI) — MUTLAKA kahramanın ismiyle başlamalı, Türkçe tamlama formatında. Örnekler: "Zeynep'in Okul Macerası", "Can'ın Uzay Yolculuğu", "Elif ve Sihirli Orman", "Mert'in İlk Günü". İsmin eki doğru olmalı (Zeynep'in, Can'ın, Ayşe'nin, Mert'in, Yiğit'in, Defne'nin). İsim başlıkta açıkça geçmezse başlık GEÇERSİZ.
 - Gerçek Türk ismi olan bir kahraman (Elif, Ayşe, Can, Yiğit, Defne, Mert vs.)
-- Karakterin DETAYLI fiziksel tanımı (AI görsel üretimi için) - yaş, cinsiyet, saç, göz, ten, ifade
-- Kıyafet tanımı (tutarlılık için kritik)
+- Karakterin DETAYLI ve ÖZGÜN fiziksel tanımı (AI görsel üretimi için):
+  * Yaş, cinsiyet — belirt
+  * Saç: renk + stil + özellik (dağınık kıvırcık siyah, düz kısa kahverengi kaküllü, at kuyruğu bağlı sarı, iki örgülü bal rengi, kel tıraşlı, alnına düşen perçemli vs.) — varyasyon şart
+  * Göz: renk + şekil (badem siyah, büyük kahverengi, çekik ela, gri-mavi, iri yeşil)
+  * Ten: açık/buğday/esmer/bronz
+  * EN AZ 2 AYIRT EDİCİ ÖZELLİK ZORUNLU (non-negotiable): çil, gamze, diş aralığı, diş teli, gözlük, kulak kepçesi, burnunda küçük yara izi, çene çukuru, doğum lekesi, tek gamze, kısa boy, tombulca, uzun boylu sıska, ince parmaklar, yara/morluk, band-aid, renkli toka, vb. — KLİŞEDEN KAÇIN
+  * İfade: doğal mood (utangaç mı, afacan mı, meraklı mı, hayalperest mi)
+  * "Brown hair warm smile" tarzı klişe YASAK — her karakter özel olsun
+- Kıyafet tanımı — temaya uygun ve gerçekçi (sadece pijama/t-shirt değil: spor forması, okul üniforması, parti kıyafeti, kışlık mont, tişört + şort, elbise, pareo, abla kazağı, büyük pantolon, uzun kollu çiçekli)
 - 5-7 cümlelik kısa özet
 - 5-7 sahne (hikayenin akışı)
 - 3-5 çocuk kazanımı (değer, beceri, duygu)
@@ -88,8 +95,14 @@ GÖREV: Bu istekten yola çıkarak tam bir çocuk hikaye kitabı konsepti üret.
 - Kullanıcı bir çocuk ismi yazmışsa onu kahraman yap. Yazmamışsa uygun bir Türk ismi seç.
 - Kullanıcının belirttiği tema/fikre dayalı özgün bir hikaye kur.
 - Başlık MUTLAKA çocuğun ismiyle başlamalı, Türkçe tamlama formatında. Örnekler: "Reha'nın Fenerbahçe Macerası", "Zeynep'in Balerin Hayali". İsmin eki doğru olmalı (Reha'nın, Ayşe'nin, Mert'in, Yiğit'in). Başlık maks 6 kelime. İsim başlıkta GEÇMEZSE başlık GEÇERSİZ.
-- Karakter fiziksel tanımı detaylı olmalı (AI görsel üretimi için): yaş, cinsiyet, saç, göz, ten, ifade. Kullanıcı yaş/cinsiyet yazmamışsa temaya uygun tahmin et.
-- Kıyafet temaya uygun (futbol ise forma, balerin ise tütü vs.)
+- Karakter fiziksel tanımı DETAYLI + ÖZGÜN olmalı:
+  * Saç: renk+stil+özellik varyasyonu (dağınık kıvırcık, kısa kaküllü, at kuyruğu, örgülü, tıraşlı, perçemli)
+  * Göz: renk+şekil (badem/büyük/çekik/iri)
+  * Ten: açık/buğday/esmer/bronz
+  * EN AZ 2 AYIRT EDİCİ ÖZELLİK ZORUNLU: çil, gamze, diş aralığı, gözlük, kulak kepçesi, yara izi, doğum lekesi, band-aid, renkli toka, tombulca, ince uzun vs. KLİŞE YASAK.
+  * "Brown hair warm smile" gibi generic tanım YASAK
+- Kullanıcı yaş/cinsiyet yazmamışsa temaya uygun tahmin et
+- Kıyafet temaya uygun + gerçekçi detay (forma numarası, yırtılmış diz, kir lekesi, eski sevilen kıyafet)
 - 5-7 cümlelik kısa özet
 - 5-7 sahne (hikayenin akışı, temaya göre)
 - 3-5 çocuk kazanımı
