@@ -185,41 +185,24 @@ export async function generateProductShots(
   concept: BookConcept,
   category: Category,
   heroCoverUrl: string,
-  onProgress?: (type: string, label: string) => void
+  onVisualReady?: (visual: GeneratedVisual) => void
 ): Promise<GeneratedVisual[]> {
   const results: GeneratedVisual[] = [];
+  const allShots = [...PRODUCT_SHOTS, ...MARKETING_SHOTS];
 
-  // Product shots (5)
-  for (const shot of PRODUCT_SHOTS) {
-    onProgress?.(shot.type, shot.label);
+  for (const shot of allShots) {
     try {
       const prompt = shot.promptBuilder(concept, category);
       const imageUrl = await generateImage(prompt, [heroCoverUrl], shot.aspectRatio);
-      results.push({
+      const visual: GeneratedVisual = {
         id: shot.type,
         type: shot.type,
         label: shot.label,
         imageUrl,
         prompt,
-      });
-    } catch (err: any) {
-      console.error(`Failed to generate ${shot.type}:`, err);
-    }
-  }
-
-  // Marketing shots (4)
-  for (const shot of MARKETING_SHOTS) {
-    onProgress?.(shot.type, shot.label);
-    try {
-      const prompt = shot.promptBuilder(concept, category);
-      const imageUrl = await generateImage(prompt, [heroCoverUrl], shot.aspectRatio);
-      results.push({
-        id: shot.type,
-        type: shot.type,
-        label: shot.label,
-        imageUrl,
-        prompt,
-      });
+      };
+      results.push(visual);
+      onVisualReady?.(visual);
     } catch (err: any) {
       console.error(`Failed to generate ${shot.type}:`, err);
     }

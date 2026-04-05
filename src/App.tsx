@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { CATEGORY_GROUPS, getCategoriesByGroup } from "./categories";
 import type { Category } from "./categories";
-import type { GeneratedBook } from "./types";
+import type { GeneratedBook, GeneratedVisual, BookConcept } from "./types";
 import { getAllBooks, getBooksByCategory, deleteBook } from "./lib/storage";
 import { generateNewBook } from "./services/orchestrator";
 import type { GenerationProgress } from "./services/orchestrator";
@@ -17,6 +17,8 @@ function App() {
   const [progress, setProgress] = useState<GenerationProgress | null>(null);
   const [logs, setLogs] = useState<string[]>([]);
   const [error, setError] = useState<string>("");
+  const [liveVisuals, setLiveVisuals] = useState<GeneratedVisual[]>([]);
+  const [liveConcept, setLiveConcept] = useState<BookConcept | null>(null);
 
   useEffect(() => { loadBooks(); }, []);
 
@@ -40,11 +42,14 @@ function App() {
     if (!selectedCategory) return;
     setView("generating");
     setProgress(null); setLogs([]); setError("");
+    setLiveVisuals([]); setLiveConcept(null);
 
     try {
       const book = await generateNewBook(selectedCategory, (p) => {
         setProgress(p);
         setLogs(prev => [...prev, `[${new Date().toLocaleTimeString("tr-TR")}] ${p.message}`]);
+        if (p.newVisual) setLiveVisuals(prev => [...prev, p.newVisual!]);
+        if (p.concept) setLiveConcept(p.concept);
       });
       setSelectedBook(book);
       await loadBooks();
@@ -116,7 +121,7 @@ function App() {
         )}
 
         {view === "generating" && (
-          <GeneratingView progress={progress} logs={logs} error={error} onRetry={startGeneration} onCancel={() => setView("category")} />
+          <GeneratingView progress={progress} logs={logs} error={error} onRetry={startGeneration} onCancel={() => setView("category")} liveVisuals={liveVisuals} liveConcept={liveConcept} />
         )}
 
         {view === "book-detail" && selectedBook && (
@@ -246,12 +251,14 @@ function CategoryView({ category, books, onBack, onGenerate, onBookClick, onDele
 }
 
 // ═══ GENERATING VIEW ═══
-function GeneratingView({ progress, logs, error, onRetry, onCancel }: {
+function GeneratingView({ progress, logs, error, onRetry, onCancel, liveVisuals, liveConcept }: {
   progress: GenerationProgress | null;
   logs: string[];
   error: string;
   onRetry: () => void;
   onCancel: () => void;
+  liveVisuals: GeneratedVisual[];
+  liveConcept: BookConcept | null;
 }) {
   const stages = ["concept", "cover", "products", "marketing", "seo", "done"];
   const currentIdx = progress ? stages.indexOf(progress.stage) : 0;
@@ -290,9 +297,44 @@ function GeneratingView({ progress, logs, error, onRetry, onCancel }: {
             </div>
           </div>
 
+          {liveConcept && (
+            <div className="bg-white rounded-xl border border-purple-100 p-4">
+              <p className="text-[10px] font-mono text-purple-500 uppercase tracking-widest mb-1">Üretilen Kitap</p>
+              <p className="font-display font-bold text-purple-900 text-lg">{liveConcept.baslik}</p>
+              <p className="text-xs text-purple-600 mt-1">
+                Kahraman: {liveConcept.kahraman.isim} · {liveConcept.kahraman.yas} yaş
+              </p>
+            </div>
+          )}
+
+          {liveVisuals.length > 0 && (
+            <div className="bg-white rounded-xl border border-purple-100 p-4">
+              <p className="text-[10px] font-mono text-purple-500 uppercase tracking-widest mb-2">
+                Tamamlanan Görseller ({liveVisuals.length})
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {liveVisuals.map(v => (
+                  <div key={v.id} className="rounded-lg overflow-hidden border border-purple-100 bg-purple-50 relative group">
+                    <img src={v.imageUrl} alt={v.label} className="w-full aspect-square object-cover" />
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                      <a
+                        href={v.imageUrl}
+                        download={`${v.type}.png`}
+                        className="bg-white text-purple-700 text-xs px-3 py-1 rounded-full font-semibold"
+                      >
+                        ⬇ İndir
+                      </a>
+                    </div>
+                    <p className="text-xs font-medium text-purple-900 p-2">{v.label}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="bg-white rounded-xl border border-purple-100 p-4">
             <p className="text-[10px] font-mono text-purple-500 uppercase tracking-widest mb-2">İşlem Logu</p>
-            <div className="max-h-48 overflow-y-auto font-mono text-[11px] text-purple-700 space-y-0.5">
+            <div className="max-h-40 overflow-y-auto font-mono text-[11px] text-purple-700 space-y-0.5">
               {logs.map((log, i) => <p key={i}>{log}</p>)}
             </div>
           </div>

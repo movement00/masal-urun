@@ -10,6 +10,8 @@ export interface GenerationProgress {
   stage: GenerationStage;
   message: string;
   currentShot?: string;
+  newVisual?: GeneratedVisual;
+  concept?: import("../types").BookConcept;
 }
 
 export type ProgressCallback = (progress: GenerationProgress) => void;
@@ -24,12 +26,11 @@ export async function generateNewBook(
   onProgress({ stage: "concept", message: "Kitap konsepti oluşturuluyor..." });
   const previousTitles = await getPreviousTitles(category.id);
   const concept = await generateBookConcept(category, previousTitles);
-  onProgress({ stage: "concept", message: `✅ Konsept hazır: "${concept.baslik}"` });
+  onProgress({ stage: "concept", message: `✅ Konsept hazır: "${concept.baslik}"`, concept });
 
   // STAGE 2: Hero Cover (defines character)
   onProgress({ stage: "cover", message: "Kapak tasarlanıyor..." });
   const { imageUrl: heroUrl, prompt: heroPrompt } = await generateCoverImage(category, concept);
-  onProgress({ stage: "cover", message: "✅ Kapak hazır — karakter sabitlendi" });
 
   const heroVisual: GeneratedVisual = {
     id: "hero",
@@ -38,6 +39,7 @@ export async function generateNewBook(
     imageUrl: heroUrl,
     prompt: heroPrompt,
   };
+  onProgress({ stage: "cover", message: "✅ Kapak hazır — karakter sabitlendi", newVisual: heroVisual });
 
   // STAGE 3: Product Shots (referencing hero for character consistency)
   onProgress({ stage: "products", message: "Ürün fotoğrafları üretiliyor..." });
@@ -45,15 +47,16 @@ export async function generateNewBook(
     concept,
     category,
     heroUrl,
-    (type, label) => {
+    (visual) => {
       onProgress({
-        stage: type === "parent_reading" || type === "reaction" || type === "hook" || type === "infographic" ? "marketing" : "products",
-        message: `Üretiliyor: ${label}`,
-        currentShot: type,
+        stage: visual.type === "parent_reading" || visual.type === "reaction" || visual.type === "hook" || visual.type === "infographic" ? "marketing" : "products",
+        message: `✅ ${visual.label} hazır`,
+        currentShot: visual.type,
+        newVisual: visual,
       });
     }
   );
-  onProgress({ stage: "marketing", message: `✅ ${productVisuals.length} görsel tamamlandı` });
+  onProgress({ stage: "marketing", message: `✅ ${productVisuals.length + 1} görsel tamamlandı` });
 
   // STAGE 4: SEO Content
   onProgress({ stage: "seo", message: "SEO içeriği üretiliyor..." });
