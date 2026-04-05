@@ -1,6 +1,8 @@
 import { generateBookConcept } from "./conceptAgent";
+import { generateCharacterReferences } from "./characterReferenceAgent";
 import { generateCoverImage } from "./coverAgent";
-import { generateProductShots } from "./productAgent";
+import { generateEmotionalMoments } from "./emotionalMomentsAgent";
+import { generateProductShowcase } from "./productShowcaseAgent";
 import { generateSeoContent } from "./seoAgent";
 import { getPreviousTitles, saveBook } from "../lib/storage";
 import type { Category } from "../categories";
@@ -28,9 +30,30 @@ export async function generateNewBook(
   const concept = await generateBookConcept(category, previousTitles);
   onProgress({ stage: "concept", message: `✅ Konsept hazır: "${concept.baslik}"`, concept });
 
-  // STAGE 2: Hero Cover (defines character)
+  // STAGE 2: Character References (2 iPhone-style real photos — locks character identity)
+  onProgress({ stage: "char_refs", message: "Karakter referans fotoğrafları üretiliyor..." });
+  const characterRefs = await generateCharacterReferences(concept);
+
+  const refPortraitVisual: GeneratedVisual = {
+    id: "ref_portrait",
+    type: "ref_portrait",
+    label: "Karakter Ref — Portre",
+    imageUrl: characterRefs.refPortrait,
+    prompt: "(iPhone-style close-up portrait reference)",
+  };
+  const refFullBodyVisual: GeneratedVisual = {
+    id: "ref_fullbody",
+    type: "ref_fullbody",
+    label: "Karakter Ref — Tam Boy",
+    imageUrl: characterRefs.refFullBody,
+    prompt: "(iPhone-style full-body reference)",
+  };
+  onProgress({ stage: "char_refs", message: "✅ Portre hazır", newVisual: refPortraitVisual });
+  onProgress({ stage: "char_refs", message: "✅ Tam boy hazır — karakter sabitlendi", newVisual: refFullBodyVisual });
+
+  // STAGE 3: Hero Cover (uses refs for face consistency + badge)
   onProgress({ stage: "cover", message: "Kapak tasarlanıyor..." });
-  const { imageUrl: heroUrl, prompt: heroPrompt } = await generateCoverImage(category, concept);
+  const { imageUrl: heroUrl, prompt: heroPrompt } = await generateCoverImage(category, concept, characterRefs);
 
   const heroVisual: GeneratedVisual = {
     id: "hero",
@@ -39,26 +62,40 @@ export async function generateNewBook(
     imageUrl: heroUrl,
     prompt: heroPrompt,
   };
-  onProgress({ stage: "cover", message: "✅ Kapak hazır — karakter sabitlendi", newVisual: heroVisual });
+  onProgress({ stage: "cover", message: "✅ Kapak hazır", newVisual: heroVisual });
 
-  // STAGE 3: Product Shots (referencing hero for character consistency)
+  // STAGE 4: Product Showcase (shots of the physical book using cover)
   onProgress({ stage: "products", message: "Ürün fotoğrafları üretiliyor..." });
-  const productVisuals = await generateProductShots(
+  const productVisuals = await generateProductShowcase(
     concept,
-    category,
     heroUrl,
     (visual) => {
       onProgress({
-        stage: visual.type === "parent_reading" || visual.type === "reaction" || visual.type === "hook" || visual.type === "infographic" ? "marketing" : "products",
-        message: `✅ ${visual.label} hazır`,
+        stage: "products",
+        message: `✅ ${visual.label}`,
         currentShot: visual.type,
         newVisual: visual,
       });
     }
   );
-  onProgress({ stage: "marketing", message: `✅ ${productVisuals.length + 1} görsel tamamlandı` });
 
-  // STAGE 4: SEO Content
+  // STAGE 5: Emotional Moments (life scenes with child + book, using refs + cover)
+  onProgress({ stage: "emotional", message: "Duygusal anlar üretiliyor..." });
+  const emotionalVisuals = await generateEmotionalMoments(
+    concept,
+    characterRefs,
+    heroUrl,
+    (visual) => {
+      onProgress({
+        stage: "emotional",
+        message: `✅ ${visual.label}`,
+        currentShot: visual.type,
+        newVisual: visual,
+      });
+    }
+  );
+
+  // STAGE 6: SEO Content
   onProgress({ stage: "seo", message: "SEO içeriği üretiliyor..." });
   const seo = await generateSeoContent(concept, category);
   onProgress({ stage: "seo", message: "✅ SEO içeriği hazır" });
@@ -68,7 +105,13 @@ export async function generateNewBook(
     categoryId: category.id,
     category,
     concept,
-    visuals: [heroVisual, ...productVisuals],
+    visuals: [
+      refPortraitVisual,
+      refFullBodyVisual,
+      heroVisual,
+      ...productVisuals,
+      ...emotionalVisuals,
+    ],
     seo,
     createdAt: Date.now(),
     status: "completed",

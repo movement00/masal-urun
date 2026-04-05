@@ -260,7 +260,7 @@ function GeneratingView({ progress, logs, error, onRetry, onCancel, liveVisuals,
   liveVisuals: GeneratedVisual[];
   liveConcept: BookConcept | null;
 }) {
-  const stages = ["concept", "cover", "products", "marketing", "seo", "done"];
+  const stages = ["concept", "char_refs", "cover", "products", "emotional", "seo", "done"];
   const currentIdx = progress ? stages.indexOf(progress.stage) : 0;
 
   return (
