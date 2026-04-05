@@ -13,20 +13,27 @@ PROFESSIONAL CHILDREN'S BOOK COVER DESIGN, A4 portrait format (2:3 aspect ratio)
 
 TITLE TEXT (at top of cover, clearly visible and readable):
 "${baslik}"
-Use bold playful children's book font with Turkish characters PERFECTLY rendered (ş, ğ, ü, ö, ç, ı, İ)
-Title should occupy top 20-25% of cover
+TYPOGRAPHY: Premium children's book title design — mix TWO fonts for visual interest:
+  - Character's name in hand-lettered script / custom display font (playful, warm, slightly bouncy, decorative swashes)
+  - Remaining words in bold modern sans-serif or friendly display font (contrasting weight)
+  - Add subtle decorative touches: small stars, hearts, sparkles, or tiny illustrated elements near the title
+  - Colors: contrast with background — warm cream/gold/deep brown on light, or white/cream with soft outline on dark scenes
+  - Turkish characters PERFECTLY rendered (ş, ğ, ü, ö, ç, ı, İ)
+  - NOT generic Comic Sans or flat Arial — must feel handcrafted, premium, like a published Turkish children's book
+Title should occupy top 18-22% of cover with generous breathing room
 
-CHARACTER (main subject, large, centered in middle portion):
+CHARACTER (personalized child, fully integrated INTO the story scene):
 ${characterDesc}
-Expression: warm, engaging, child-friendly
-Big expressive eyes, welcoming smile, appealing pose
+The character is LIVING the moment — actively experiencing the scene, not posing for camera. Natural body language, genuine expression matching the scene's emotion (curious, amazed, joyful, thoughtful). Big expressive eyes, authentic feelings.
 
-COMPOSITION:
-- A4 vertical portrait
-- Title at top
-- Character dominates the middle
-- Scene/background at bottom 30-40%
-- Clean professional children's book design`;
+COMPOSITION — CINEMATIC STORY SCENE (like a Pixar movie poster/film still):
+- A4 vertical portrait, 2:3
+- Title at top with decorative treatment
+- FULL-BLEED story scene fills the ENTIRE cover (NOT "character on background" — character IS inside the environment)
+- Character placed using rule-of-thirds, cinematic framing, environmental storytelling
+- Depth layers: foreground elements, mid-ground character+action, atmospheric background
+- Scene elements interact with the character (lighting touches them, objects near them, world around them)
+- Feels like a single narrative moment frozen in time — like Pixar's UP, Coco, or Encanto poster art`;
 
   switch (category.visualStyle) {
     case "pixar-3d":

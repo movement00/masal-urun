@@ -23,7 +23,7 @@ ${previousList}
 GÖREV: Bu kategori için ÖZGÜN bir çocuk kitabı konsepti üret.
 
 ÖZELLİKLER:
-- Özgün Türkçe başlık (maks 6 kelime, önceki başlıklardan FARKLI)
+- Özgün Türkçe başlık (maks 6 kelime, önceki başlıklardan FARKLI) — MUTLAKA kahramanın ismiyle başlamalı, Türkçe tamlama formatında. Örnekler: "Zeynep'in Okul Macerası", "Can'ın Uzay Yolculuğu", "Elif ve Sihirli Orman", "Mert'in İlk Günü". İsmin eki doğru olmalı (Zeynep'in, Can'ın, Ayşe'nin, Mert'in, Yiğit'in, Defne'nin). İsim başlıkta açıkça geçmezse başlık GEÇERSİZ.
 - Gerçek Türk ismi olan bir kahraman (Elif, Ayşe, Can, Yiğit, Defne, Mert vs.)
 - Karakterin DETAYLI fiziksel tanımı (AI görsel üretimi için) - yaş, cinsiyet, saç, göz, ten, ifade
 - Kıyafet tanımı (tutarlılık için kritik)
