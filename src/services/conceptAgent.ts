@@ -68,3 +68,63 @@ SADECE JSON döndür.`;
   const responseText = await generateText(prompt, schema);
   return JSON.parse(responseText) as BookConcept;
 }
+
+/**
+ * Generate a book concept from a free-text user prompt.
+ * e.g. "Reha Fenerbahçe Kaptanı" → full story concept with Reha as the hero.
+ * The user prompt MAY include the child's name and theme — concept agent extracts
+ * them and builds everything else.
+ */
+export async function generateBookConceptFromPrompt(
+  userPrompt: string
+): Promise<BookConcept> {
+  const prompt = `Sen MasalSensin için kişiye özel çocuk kitabı konsept uzmanısın.
+
+KULLANICI İSTEĞİ: "${userPrompt}"
+
+GÖREV: Bu istekten yola çıkarak tam bir çocuk hikaye kitabı konsepti üret.
+
+ÖZELLİKLER:
+- Kullanıcı bir çocuk ismi yazmışsa onu kahraman yap. Yazmamışsa uygun bir Türk ismi seç.
+- Kullanıcının belirttiği tema/fikre dayalı özgün bir hikaye kur.
+- Başlık MUTLAKA çocuğun ismiyle başlamalı, Türkçe tamlama formatında. Örnekler: "Reha'nın Fenerbahçe Macerası", "Zeynep'in Balerin Hayali". İsmin eki doğru olmalı (Reha'nın, Ayşe'nin, Mert'in, Yiğit'in). Başlık maks 6 kelime. İsim başlıkta GEÇMEZSE başlık GEÇERSİZ.
+- Karakter fiziksel tanımı detaylı olmalı (AI görsel üretimi için): yaş, cinsiyet, saç, göz, ten, ifade. Kullanıcı yaş/cinsiyet yazmamışsa temaya uygun tahmin et.
+- Kıyafet temaya uygun (futbol ise forma, balerin ise tütü vs.)
+- 5-7 cümlelik kısa özet
+- 5-7 sahne (hikayenin akışı, temaya göre)
+- 3-5 çocuk kazanımı
+- Ana mood
+
+KURALLAR:
+- Türkçe doğal dil, çocuğa okunabilir
+- Kullanıcının fikrini genişlet ama özünü değiştirme
+
+SADECE JSON döndür.`;
+
+  const schema = {
+    type: Type.OBJECT,
+    properties: {
+      baslik: { type: Type.STRING },
+      kahraman: {
+        type: Type.OBJECT,
+        properties: {
+          isim: { type: Type.STRING },
+          yas: { type: Type.NUMBER },
+          cinsiyet: { type: Type.STRING },
+          fizikselOzellikler: { type: Type.STRING },
+          kiyafet: { type: Type.STRING },
+        },
+        required: ["isim", "yas", "cinsiyet", "fizikselOzellikler", "kiyafet"],
+      },
+      ozet: { type: Type.STRING },
+      sahneler: { type: Type.ARRAY, items: { type: Type.STRING } },
+      kazanimlar: { type: Type.ARRAY, items: { type: Type.STRING } },
+      yasGrubu: { type: Type.STRING },
+      mood: { type: Type.STRING },
+    },
+    required: ["baslik", "kahraman", "ozet", "sahneler", "kazanimlar", "yasGrubu", "mood"],
+  };
+
+  const responseText = await generateText(prompt, schema);
+  return JSON.parse(responseText) as BookConcept;
+}

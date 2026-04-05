@@ -3,7 +3,7 @@ import { CATEGORY_GROUPS, getCategoriesByGroup } from "./categories";
 import type { Category } from "./categories";
 import type { GeneratedBook, GeneratedVisual, BookConcept } from "./types";
 import { getAllBooks, getBooksByCategory, deleteBook } from "./lib/storage";
-import { generateNewBook } from "./services/orchestrator";
+import { generateNewBook, generateNewBookFromPrompt } from "./services/orchestrator";
 import type { GenerationProgress } from "./services/orchestrator";
 
 type View = "home" | "category" | "generating" | "book-detail";
@@ -60,6 +60,28 @@ function App() {
     }
   };
 
+  const startCustomGeneration = async (userPrompt: string) => {
+    if (!userPrompt.trim()) return;
+    setSelectedCategory(null);
+    setView("generating");
+    setProgress(null); setLogs([]); setError("");
+    setLiveVisuals([]); setLiveConcept(null);
+
+    try {
+      const book = await generateNewBookFromPrompt(userPrompt, (p) => {
+        setProgress(p);
+        setLogs(prev => [...prev, `[${new Date().toLocaleTimeString("tr-TR")}] ${p.message}`]);
+        if (p.newVisual) setLiveVisuals(prev => [...prev, p.newVisual!]);
+        if (p.concept) setLiveConcept(p.concept);
+      });
+      setSelectedBook(book);
+      await loadBooks();
+      setView("book-detail");
+    } catch (err: any) {
+      setError(err.message || "Üretim hatası");
+    }
+  };
+
   const removeBook = async (id: string) => {
     if (!confirm("Bu kitabı silmek istediğine emin misin?")) return;
     await deleteBook(id);
@@ -105,6 +127,7 @@ function App() {
         {view === "home" && (
           <HomeView
             onCategoryClick={openCategory}
+            onCustomGenerate={startCustomGeneration}
             books={books}
           />
         )}
@@ -138,12 +161,45 @@ function App() {
 }
 
 // ═══ HOME VIEW ═══
-function HomeView({ onCategoryClick, books }: { onCategoryClick: (c: Category) => void; books: GeneratedBook[] }) {
+function HomeView({ onCategoryClick, onCustomGenerate, books }: {
+  onCategoryClick: (c: Category) => void;
+  onCustomGenerate: (prompt: string) => void;
+  books: GeneratedBook[];
+}) {
+  const [customPrompt, setCustomPrompt] = useState("");
   return (
     <div className="space-y-8">
       <div className="text-center py-6">
         <h2 className="font-display text-3xl font-bold text-purple-900 mb-2">Otomatik Ürün Üretici</h2>
         <p className="text-purple-600">Kategori seç, AI 10 görsel + SEO içeriği üretsin</p>
+      </div>
+
+      {/* Custom prompt — user-driven book */}
+      <div className="bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200 rounded-2xl p-5">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-2xl">✨</span>
+          <h3 className="font-display text-lg font-semibold text-purple-900">Kendi Kitabını Yaz</h3>
+        </div>
+        <p className="text-sm text-purple-700 mb-3">
+          Çocuğun adı ve teması — gerisini AI halletsin. Örn: "Reha Fenerbahçe Kaptanı" veya "Zeynep'in İlk Okul Günü"
+        </p>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={customPrompt}
+            onChange={(e) => setCustomPrompt(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter" && customPrompt.trim()) { onCustomGenerate(customPrompt); setCustomPrompt(""); } }}
+            placeholder="Reha Fenerbahçe Kaptanı"
+            className="flex-1 px-4 py-2.5 rounded-xl border border-purple-200 bg-white text-purple-900 placeholder-purple-400 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
+          />
+          <button
+            onClick={() => { if (customPrompt.trim()) { onCustomGenerate(customPrompt); setCustomPrompt(""); } }}
+            disabled={!customPrompt.trim()}
+            className="bg-purple-600 text-white px-5 py-2.5 rounded-xl font-medium hover:bg-purple-700 disabled:bg-purple-300 disabled:cursor-not-allowed transition-colors"
+          >
+            Üret
+          </button>
+        </div>
       </div>
 
       {CATEGORY_GROUPS.map(group => (
