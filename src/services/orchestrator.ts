@@ -1,8 +1,7 @@
 import { generateBookConcept, generateBookConceptFromPrompt } from "./conceptAgent";
 import { generateCharacterReferences } from "./characterReferenceAgent";
-import { generateCoverImage } from "./coverAgent";
-import { generateEmotionalMoments } from "./emotionalMomentsAgent";
-import { generateProductShowcase } from "./productShowcaseAgent";
+import { generateCoverImage, generateBackCover } from "./coverAgent";
+import { generateHookVisual, generateTransformationVisual } from "./hookAgent";
 import { generateSeoContent } from "./seoAgent";
 import { getPreviousTitles, saveBook } from "../lib/storage";
 import type { Category } from "../categories";
@@ -18,82 +17,65 @@ export interface GenerationProgress {
 
 export type ProgressCallback = (progress: GenerationProgress) => void;
 
-export async function generateNewBook(
+/**
+ * Simplified 5-visual pipeline:
+ * 1. Real child photo (iPhone candid)
+ * 2. Front cover (Pixar 3D)
+ * 3. Back cover
+ * 4. Hook lifestyle (eating/sleeping with book)
+ * 5. Transformation (real → Pixar split-screen)
+ */
+async function runPipeline(
+  concept: import("../types").BookConcept,
   category: Category,
   onProgress: ProgressCallback
 ): Promise<GeneratedBook> {
   const bookId = `book-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
-  // STAGE 1: Concept
-  onProgress({ stage: "concept", message: "Kitap konsepti oluşturuluyor..." });
-  const previousTitles = await getPreviousTitles(category.id);
-  const concept = await generateBookConcept(category, previousTitles);
-  onProgress({ stage: "concept", message: `✅ Konsept hazır: "${concept.baslik}"`, concept });
-
-  // STAGE 2: Character References (2 iPhone-style real photos — locks character identity)
-  onProgress({ stage: "char_refs", message: "Karakter referans fotoğrafları üretiliyor..." });
-  const characterRefs = await generateCharacterReferences(concept);
-
-  const refPortraitVisual: GeneratedVisual = {
-    id: "ref_portrait",
-    type: "ref_portrait",
-    label: "Karakter Ref — Portre",
-    imageUrl: characterRefs.refPortrait,
-    prompt: "(iPhone-style close-up portrait reference)",
+  // STAGE 1: Real child photo (iPhone candid — this IS a deliverable)
+  onProgress({ stage: "real_photo", message: "Gerçekçi çocuk fotoğrafı üretiliyor..." });
+  const { realPhoto } = await generateCharacterReferences(concept);
+  const realPhotoVisual: GeneratedVisual = {
+    id: "real_photo", type: "real_photo", label: "Gerçek Çocuk Fotoğrafı",
+    imageUrl: realPhoto, prompt: "(iPhone candid reference)",
   };
-  const refFullBodyVisual: GeneratedVisual = {
-    id: "ref_fullbody",
-    type: "ref_fullbody",
-    label: "Karakter Ref — Tam Boy",
-    imageUrl: characterRefs.refFullBody,
-    prompt: "(iPhone-style full-body reference)",
+  onProgress({ stage: "real_photo", message: "✅ Çocuk fotoğrafı hazır", newVisual: realPhotoVisual });
+
+  // STAGE 2: Front cover (Pixar 3D, uses real photo for face reference)
+  onProgress({ stage: "covers", message: "Ön kapak tasarlanıyor..." });
+  const { imageUrl: frontUrl, prompt: frontPrompt } = await generateCoverImage(category, concept, realPhoto);
+  const frontCoverVisual: GeneratedVisual = {
+    id: "front_cover", type: "front_cover", label: "Ön Kapak",
+    imageUrl: frontUrl, prompt: frontPrompt,
   };
-  onProgress({ stage: "char_refs", message: "✅ Portre hazır", newVisual: refPortraitVisual });
-  onProgress({ stage: "char_refs", message: "✅ Tam boy hazır — karakter sabitlendi", newVisual: refFullBodyVisual });
+  onProgress({ stage: "covers", message: "✅ Ön kapak hazır", newVisual: frontCoverVisual });
 
-  // STAGE 3: Hero Cover (uses refs for face consistency + badge)
-  onProgress({ stage: "cover", message: "Kapak tasarlanıyor..." });
-  const { imageUrl: heroUrl, prompt: heroPrompt } = await generateCoverImage(category, concept, characterRefs);
-
-  const heroVisual: GeneratedVisual = {
-    id: "hero",
-    type: "hero",
-    label: "Hero Kapak",
-    imageUrl: heroUrl,
-    prompt: heroPrompt,
+  // STAGE 3: Back cover
+  onProgress({ stage: "covers", message: "Arka kapak tasarlanıyor..." });
+  const { imageUrl: backUrl, prompt: backPrompt } = await generateBackCover(concept, frontUrl);
+  const backCoverVisual: GeneratedVisual = {
+    id: "back_cover", type: "back_cover", label: "Arka Kapak",
+    imageUrl: backUrl, prompt: backPrompt,
   };
-  onProgress({ stage: "cover", message: "✅ Kapak hazır", newVisual: heroVisual });
+  onProgress({ stage: "covers", message: "✅ Arka kapak hazır", newVisual: backCoverVisual });
 
-  // STAGE 4: Product Showcase (shots of the physical book using cover)
-  onProgress({ stage: "products", message: "Ürün fotoğrafları üretiliyor..." });
-  const productVisuals = await generateProductShowcase(
-    concept,
-    heroUrl,
-    (visual) => {
-      onProgress({
-        stage: "products",
-        message: `✅ ${visual.label}`,
-        currentShot: visual.type,
-        newVisual: visual,
-      });
-    }
-  );
+  // STAGE 4: Hook lifestyle (eating or sleeping with book)
+  onProgress({ stage: "hook", message: "Yaşam anı görseli üretiliyor..." });
+  const hookResult = await generateHookVisual(concept, realPhoto, frontUrl);
+  const hookVisual: GeneratedVisual = {
+    id: "hook_lifestyle", type: "hook_lifestyle", label: `Hook: ${hookResult.label}`,
+    imageUrl: hookResult.imageUrl, prompt: hookResult.prompt,
+  };
+  onProgress({ stage: "hook", message: `✅ ${hookResult.label} hazır`, newVisual: hookVisual });
 
-  // STAGE 5: Emotional Moments (life scenes with child + book, using refs + cover)
-  onProgress({ stage: "emotional", message: "Duygusal anlar üretiliyor..." });
-  const emotionalVisuals = await generateEmotionalMoments(
-    concept,
-    characterRefs,
-    heroUrl,
-    (visual) => {
-      onProgress({
-        stage: "emotional",
-        message: `✅ ${visual.label}`,
-        currentShot: visual.type,
-        newVisual: visual,
-      });
-    }
-  );
+  // STAGE 5: Transformation (real → Pixar)
+  onProgress({ stage: "hook", message: "Dönüşüm görseli üretiliyor..." });
+  const transResult = await generateTransformationVisual(concept, realPhoto, frontUrl);
+  const transVisual: GeneratedVisual = {
+    id: "transformation", type: "transformation", label: "Dönüşüm: Gerçek → Kahraman",
+    imageUrl: transResult.imageUrl, prompt: transResult.prompt,
+  };
+  onProgress({ stage: "hook", message: "✅ Dönüşüm görseli hazır", newVisual: transVisual });
 
   // STAGE 6: SEO Content
   onProgress({ stage: "seo", message: "SEO içeriği üretiliyor..." });
@@ -105,26 +87,31 @@ export async function generateNewBook(
     categoryId: category.id,
     category,
     concept,
-    visuals: [
-      refPortraitVisual,
-      refFullBodyVisual,
-      heroVisual,
-      ...productVisuals,
-      ...emotionalVisuals,
-    ],
+    visuals: [realPhotoVisual, frontCoverVisual, backCoverVisual, hookVisual, transVisual],
     seo,
     createdAt: Date.now(),
     status: "completed",
   };
 
-  // Save to storage
   await saveBook(book);
-
-  onProgress({ stage: "done", message: "🎉 Kitap tamamlandı ve kaydedildi!" });
+  onProgress({ stage: "done", message: "🎉 5 görsel + SEO tamamlandı!" });
   return book;
 }
 
-// Synthetic "custom" category for user-prompt-driven books
+// ═══ Category-based generation ═══
+export async function generateNewBook(
+  category: Category,
+  onProgress: ProgressCallback
+): Promise<GeneratedBook> {
+  onProgress({ stage: "concept", message: "Kitap konsepti oluşturuluyor..." });
+  const previousTitles = await getPreviousTitles(category.id);
+  const concept = await generateBookConcept(category, previousTitles);
+  onProgress({ stage: "concept", message: `✅ Konsept hazır: "${concept.baslik}"`, concept });
+
+  return runPipeline(concept, category, onProgress);
+}
+
+// ═══ Custom prompt generation ═══
 const CUSTOM_CATEGORY: Category = {
   id: "custom",
   group: "hikaye",
@@ -137,74 +124,13 @@ const CUSTOM_CATEGORY: Category = {
   moodKeywords: ["özel", "kişisel", "benzersiz"],
 };
 
-/**
- * Generate a book from a free-text user prompt.
- * e.g. userPrompt = "Reha Fenerbahçe Kaptanı" → full book.
- */
 export async function generateNewBookFromPrompt(
   userPrompt: string,
   onProgress: ProgressCallback
 ): Promise<GeneratedBook> {
-  const bookId = `book-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-
-  // STAGE 1: Concept from user prompt
-  onProgress({ stage: "concept", message: "İsteğinden kitap konsepti oluşturuluyor..." });
+  onProgress({ stage: "concept", message: "İsteğinden konsept oluşturuluyor..." });
   const concept = await generateBookConceptFromPrompt(userPrompt);
   onProgress({ stage: "concept", message: `✅ Konsept hazır: "${concept.baslik}"`, concept });
 
-  // STAGE 2: Character References
-  onProgress({ stage: "char_refs", message: "Karakter referans fotoğrafları üretiliyor..." });
-  const characterRefs = await generateCharacterReferences(concept);
-
-  const refPortraitVisual: GeneratedVisual = {
-    id: "ref_portrait", type: "ref_portrait", label: "Karakter Ref — Portre",
-    imageUrl: characterRefs.refPortrait, prompt: "(iPhone-style close-up portrait reference)",
-  };
-  const refFullBodyVisual: GeneratedVisual = {
-    id: "ref_fullbody", type: "ref_fullbody", label: "Karakter Ref — Tam Boy",
-    imageUrl: characterRefs.refFullBody, prompt: "(iPhone-style full-body reference)",
-  };
-  onProgress({ stage: "char_refs", message: "✅ Portre hazır", newVisual: refPortraitVisual });
-  onProgress({ stage: "char_refs", message: "✅ Tam boy hazır — karakter sabitlendi", newVisual: refFullBodyVisual });
-
-  // STAGE 3: Hero Cover
-  onProgress({ stage: "cover", message: "Kapak tasarlanıyor..." });
-  const { imageUrl: heroUrl, prompt: heroPrompt } = await generateCoverImage(CUSTOM_CATEGORY, concept, characterRefs);
-
-  const heroVisual: GeneratedVisual = {
-    id: "hero", type: "hero", label: "Hero Kapak", imageUrl: heroUrl, prompt: heroPrompt,
-  };
-  onProgress({ stage: "cover", message: "✅ Kapak hazır", newVisual: heroVisual });
-
-  // STAGE 4: Product Showcase
-  onProgress({ stage: "products", message: "Ürün fotoğrafları üretiliyor..." });
-  const productVisuals = await generateProductShowcase(concept, heroUrl, (visual) => {
-    onProgress({ stage: "products", message: `✅ ${visual.label}`, currentShot: visual.type, newVisual: visual });
-  });
-
-  // STAGE 5: Emotional Moments
-  onProgress({ stage: "emotional", message: "Duygusal anlar üretiliyor..." });
-  const emotionalVisuals = await generateEmotionalMoments(concept, characterRefs, heroUrl, (visual) => {
-    onProgress({ stage: "emotional", message: `✅ ${visual.label}`, currentShot: visual.type, newVisual: visual });
-  });
-
-  // STAGE 6: SEO Content
-  onProgress({ stage: "seo", message: "SEO içeriği üretiliyor..." });
-  const seo = await generateSeoContent(concept, CUSTOM_CATEGORY);
-  onProgress({ stage: "seo", message: "✅ SEO içeriği hazır" });
-
-  const book: GeneratedBook = {
-    id: bookId,
-    categoryId: "custom",
-    category: CUSTOM_CATEGORY,
-    concept,
-    visuals: [refPortraitVisual, refFullBodyVisual, heroVisual, ...productVisuals, ...emotionalVisuals],
-    seo,
-    createdAt: Date.now(),
-    status: "completed",
-  };
-
-  await saveBook(book);
-  onProgress({ stage: "done", message: "🎉 Özel kitabın hazır!" });
-  return book;
+  return runPipeline(concept, CUSTOM_CATEGORY, onProgress);
 }

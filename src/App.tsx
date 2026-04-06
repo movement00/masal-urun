@@ -278,7 +278,7 @@ function CategoryView({ category, books, onBack, onGenerate, onBookClick, onDele
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
             {books.map(book => {
-              const cover = book.visuals.find(v => v.type === "hero");
+              const cover = book.visuals.find(v => v.type === "front_cover");
               return (
                 <div key={book.id} className="bg-white rounded-xl border border-purple-100 overflow-hidden hover:shadow-md transition-all relative group">
                   <button onClick={() => onBookClick(book)} className="block w-full text-left">
@@ -316,7 +316,7 @@ function GeneratingView({ progress, logs, error, onRetry, onCancel, liveVisuals,
   liveVisuals: GeneratedVisual[];
   liveConcept: BookConcept | null;
 }) {
-  const stages = ["concept", "char_refs", "cover", "products", "emotional", "seo", "done"];
+  const stages = ["concept", "real_photo", "covers", "hook", "seo", "done"];
   const currentIdx = progress ? stages.indexOf(progress.stage) : 0;
 
   return (

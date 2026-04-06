@@ -1,7 +1,7 @@
 import { generateImage } from "./geminiClient";
 import type { Category } from "../categories";
 import type { BookConcept } from "../types";
-// CharacterReference import removed — now takes raw string URL
+import type { CharacterReference } from "./characterReferenceAgent";
 
 function getStylePromptForCategory(category: Category, concept: BookConcept): string {
   const { baslik, kahraman, sahneler } = concept;
@@ -96,50 +96,12 @@ GIFT BOOK — appeals to both children AND parents/grandparents buying it.`;
 export async function generateCoverImage(
   category: Category,
   concept: BookConcept,
-  realPhotoRef?: string
+  characterRefs?: CharacterReference
 ): Promise<{ imageUrl: string; prompt: string }> {
   const prompt = getStylePromptForCategory(category, concept);
-  const refs = realPhotoRef ? [realPhotoRef] : [];
+  const refs = characterRefs
+    ? [characterRefs.refPortrait, characterRefs.refFullBody]
+    : [];
   const imageUrl = await generateImage(prompt, refs, "2:3");
-  return { imageUrl, prompt };
-}
-
-export async function generateBackCover(
-  concept: BookConcept,
-  frontCoverUrl: string
-): Promise<{ imageUrl: string; prompt: string }> {
-  const { baslik, kahraman, ozet, kazanimlar } = concept;
-  const kazanimList = kazanimlar.slice(0, 5).map((k, i) => `${i + 1}. ${k}`).join("\n");
-
-  const prompt = `BACK COVER of a thin soft-cover Turkish children's storybook. 2:3 portrait format.
-
-This is the REVERSE SIDE of the front cover shown in the reference image. Same book, same visual language, same art style.
-
-LAYOUT (top to bottom):
-— TOP 30%: A small illustrated scene vignette (character from the story in a warm moment, same Pixar 3D style as front cover). This should be a different scene than the front cover but same character.
-
-— MIDDLE 45%:
-ÖZET (story summary in warm, inviting Turkish):
-"${ozet}"
-
-KAZANIMLAR (what the child gains — Turkish text, each with small icon):
-${kazanimList}
-
-— BOTTOM 25%:
-Personalization badge: "Bu kitap ${kahraman.isim} için özel olarak hazırlanmıştır ❤️"
-Small MasalSensin logo placeholder
-Barcode placeholder area (small, bottom-right)
-
-TYPOGRAPHY:
-- Summary in warm serif or friendly sans-serif
-- Kazanimlar in clean rounded sans with small icons (star, heart, lightbulb, shield, smiley)
-- Badge text in handwritten script
-- Turkish characters PERFECT (ş, ğ, ü, ö, ç, ı, İ)
-
-STYLE: Same pastel/warm tone as front cover. Professional published book back cover. Clean, readable, parent-friendly. NOT cluttered.
-
-Title reference: "${baslik}"`;
-
-  const imageUrl = await generateImage(prompt, [frontCoverUrl], "2:3");
   return { imageUrl, prompt };
 }

@@ -18,12 +18,7 @@ export interface BookConcept {
 
 export interface GeneratedVisual {
   id: string;
-  type:
-    | "real_photo"
-    | "front_cover"
-    | "back_cover"
-    | "hook_lifestyle"
-    | "transformation";
+  type: "hero" | "cover_45" | "open_book" | "flatlay" | "gift" | "child_holding" | "parent_reading" | "hook" | "infographic" | "reaction";
   label: string;
   imageUrl: string;
   prompt: string;
@@ -55,9 +50,9 @@ export interface GeneratedBook {
 export type GenerationStage =
   | "idle"
   | "concept"
-  | "real_photo"
-  | "covers"
-  | "hook"
+  | "cover"
+  | "products"
+  | "marketing"
   | "seo"
   | "done"
   | "error";
