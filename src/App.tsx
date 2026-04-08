@@ -179,7 +179,7 @@ function HomeView({ onCategoryClick, onCustomGenerate, books }: {
     <div className="space-y-8">
       <div className="text-center py-6">
         <h2 className="font-display text-3xl font-bold text-purple-900 mb-2">Otomatik Ürün Üretici</h2>
-        <p className="text-purple-600">Kategori seç, AI 10 görsel + SEO içeriği üretsin</p>
+        <p className="text-purple-600">Kategori seç, AI 5 Pixar görsel + SEO içeriği üretsin</p>
       </div>
 
       {/* Custom prompt — user-driven book */}
@@ -324,7 +324,7 @@ function GeneratingView({ progress, logs, error, onRetry, onCancel, liveVisuals,
   liveVisuals: GeneratedVisual[];
   liveConcept: BookConcept | null;
 }) {
-  const stages = ["concept", "real_photo", "covers", "hook", "seo", "done"];
+  const stages = ["concept", "character", "covers", "hook", "conversion", "seo", "done"];
   const currentIdx = progress ? stages.indexOf(progress.stage) : 0;
 
   return (
@@ -348,7 +348,7 @@ function GeneratingView({ progress, logs, error, onRetry, onCancel, liveVisuals,
             </div>
 
             <div className="flex items-center justify-between">
-              {["Konsept", "Kapak", "Ürün", "Pazarlama", "SEO", "Bitti"].map((label, i) => (
+              {["Konsept", "Karakter", "Kapaklar", "Hook", "Dönüşüm", "SEO", "Bitti"].map((label, i) => (
                 <div key={i} className="flex flex-col items-center flex-1">
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold mb-1 ${
                     i < currentIdx ? "bg-green-500 text-white" : i === currentIdx ? "bg-purple-600 text-white animate-pulse" : "bg-purple-100 text-purple-400"

@@ -3,72 +3,95 @@ import type { BookConcept } from "../types";
 
 function pick<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
 
+// ═══ HOOK GÖRSELLERİ — 3D Pixar tarzında, doğal ortamda çocuk + kitap ═══
+// Çocuğun kitapla doğal bir anını gösteren sıcak sahne.
+
 const HOOK_SCENES = [
   {
-    label: "Yemek Yerken",
-    scene: (c: BookConcept) => `iPhone candid photo: the child (from reference photo — EXACT same child, same face, same features) sitting at a dinner table, eating, with the thin soft-cover storybook "${c.baslik}" propped open beside the plate. Child keeps glancing at the book between bites. Spoon mid-air. Mom's hand blurred reaching across. Real Turkish family dinner table — çorba or makarna on plate, bread basket, water glass. Evening kitchen light, slightly warm tungsten. iPhone handheld by dad, slightly tilted. NOT staged — real messy table, real dinner moment. The book is JUST THERE in their life, not presented.`,
+    label: "Yatakta Okuyor",
+    scene: (c: BookConcept) => `3D Pixar/Disney CGI scene: The SAME Turkish child from the reference portrait (EXACT same face, hair, skin, features — Pixar style) is lying on a cozy bed reading the storybook "${c.baslik}". The child is propped up on pillows, blanket pulled up to waist, holding the open book with both hands, eyes wide with wonder at the story. Warm bedside lamp glow, stuffed animal tucked under one arm. Real-feeling bedroom: slightly messy, toys on the floor, colorful bedsheet with patterns. The book cover is visible showing the front cover from the second reference image. Evening atmosphere, warm golden light. The child is completely absorbed in reading — a tender bedtime moment. Turkish apartment bedroom feeling (radiator visible, curtains, small balcony door in background).`,
   },
   {
-    label: "Uyurken Kitapla",
-    scene: (c: BookConcept) => `iPhone photo taken by a parent in dim bedroom light: the child (from reference photo — EXACT same child) has fallen asleep mid-read. The soft-cover book "${c.baslik}" rests open on their chest, one hand still loosely holding a page. Blanket half-kicked off. Pillow slightly crooked. Bedside lamp glow only. Child's face peaceful, mouth slightly open, breathing. Stuffed animal squished under one arm. Real bedroom mess — other toys on floor, glass of water on nightstand. iPhone flash did NOT fire — low light, slight grain, soft focus. Parent captured this tender moment quietly. Utterly real.`,
+    label: "Parkta Okuyor",
+    scene: (c: BookConcept) => `3D Pixar/Disney CGI scene: The SAME Turkish child from the reference portrait (EXACT same face, hair, skin, features — Pixar style) is sitting under a tree in a sunny Turkish park, reading the storybook "${c.baslik}". Cross-legged on grass, book open on lap, completely absorbed. Dappled sunlight through leaves, warm afternoon glow. Background: other kids playing in distance (blurred), a playground, Turkish apartment buildings visible beyond the park. Maybe a juice box or snack beside them. The book cover visible showing the front cover from the second reference image. Natural, spontaneous moment — child chose to read outdoors. Warm, inviting, the kind of scene that makes parents smile.`,
+  },
+  {
+    label: "Kahvaltıda Okuyor",
+    scene: (c: BookConcept) => `3D Pixar/Disney CGI scene: The SAME Turkish child from the reference portrait (EXACT same face, hair, skin, features — Pixar style) at a Turkish breakfast table, sneaking a read of "${c.baslik}" between bites. One hand on the book propped against a glass, other hand holding bread with cheese. Typical Turkish kahvaltı spread: çay glasses, white cheese, olives, tomatoes, honey, bread. Morning light streaming through kitchen window. Mom's hand blurred reaching for something in background. The book cover visible showing the front cover from the second reference image. Warm, authentic Turkish family morning scene — the child can't put the book down even at breakfast.`,
   },
 ];
 
 /**
- * Generates ONE hook/kanca lifestyle photo — child naturally living with the book.
- * Uses the real-child reference photo for face consistency.
+ * Generates ONE hook/lifestyle visual — child naturally living with the book.
+ * 3D Pixar CGI style matching the character portrait.
  */
 export async function generateHookVisual(
   concept: BookConcept,
-  realPhotoRef: string,
+  characterPortraitRef: string,
   frontCoverRef: string
 ): Promise<{ imageUrl: string; prompt: string; label: string }> {
   const hook = pick(HOOK_SCENES);
   const prompt = `${hook.scene(concept)}
 
-REALISM RULES (same as character photo):
-- Real skin with pores, imperfections, redness
-- Real fabric wrinkles, stains
-- Real environment — messy, lived-in
-- iPhone computational photo look — not studio
-- NO AI tells: no waxy skin, no perfect symmetry, no merged fingers
-- The child must look IDENTICAL to the reference photo — same face, same features
+3D PIXAR STYLE RULES:
+- Same Pixar/Disney CGI quality as the character reference portrait
+- Rich subsurface scattering on skin, detailed 3D hair, expressive eyes
+- Warm volumetric lighting, soft shadows
+- Environment rendered in Pixar style — stylized but believable
+- Character MUST be identical to reference portrait — same face, features, hair, skin tone
 
-The book in the scene must show the cover from the second reference image.`;
+CRITICAL:
+- This is 3D Pixar CGI — NOT a real photograph, NOT 2D illustration
+- The child must look like a REAL Turkish child (Pixar-stylized) — dark hair, warm skin as described
+- DO NOT change the character's appearance from the reference
+- Natural, warm, cozy — a moment parents recognize from their own lives`;
 
-  const imageUrl = await generateImage(prompt, [realPhotoRef, frontCoverRef], "3:4");
+  const imageUrl = await generateImage(prompt, [characterPortraitRef, frontCoverRef], "3:4");
   return { imageUrl, prompt, label: hook.label };
 }
 
 /**
- * Generates the transformation visual: real photo → Pixar story character.
- * Split-screen marketing image.
+ * Generates the conversion/marketing visual showing the book's magic.
+ * Split-screen or storytelling visual in 3D Pixar style.
  */
-export async function generateTransformationVisual(
+export async function generateConversionVisual(
   concept: BookConcept,
-  realPhotoRef: string,
+  characterPortraitRef: string,
   frontCoverRef: string
 ): Promise<{ imageUrl: string; prompt: string }> {
-  const prompt = `Split-screen marketing visual for "${concept.baslik}" — a personalized children's book.
+  const prompt = `3D Pixar/Disney CGI marketing visual for "${concept.baslik}" — a personalized Turkish children's storybook.
 
-LAYOUT: Clean vertical split (50/50).
+SCENE: A magical moment showing the power of the personalized book.
 
-LEFT SIDE — "Gerçek":
-A polaroid-frame snapshot of the real child (from FIRST reference image — same child, same face). Polaroid slightly tilted, with a small handwritten caption: "Senin çocuğun". Warm, analog, authentic feel. The real iPhone photo aesthetic.
+The SAME Turkish child from the reference portrait (EXACT same face, hair, skin, features — Pixar style) is sitting and holding the open book. As they read, the story characters and scenes are magically coming alive from the pages — swirling out of the book in a beautiful trail of sparkles, stardust, and warm light.
 
-RIGHT SIDE — "Kahraman":
-The same child transformed into their 3D Pixar-style storybook character as seen on the book cover (SECOND reference image). Same recognizable features but Pixar-ified: bigger eyes, softer proportions, vibrant cartoon world around them. Small caption: "Onun hikayesi"
+The child's expression is pure WONDER — mouth slightly open, eyes sparkling with amazement, leaning forward with excitement. They're seeing themselves in the story (a smaller version of themselves as the story hero is visible in the magical swirl coming from the book pages).
 
-CENTER TRANSITION:
-Soft sparkle/magic dust effect connecting the two sides. A gentle glowing arrow "→" or stardust trail.
+VISUAL ELEMENTS:
+- The physical book is visible in the child's hands, cover recognizable from the second reference
+- Magical particles, stardust, soft glowing light emerging from the open pages
+- Story elements floating in the magical trail (elements from the story scenes)
+- A miniature Pixar version of the child as the story hero visible in the magic
+- Warm, golden, magical atmosphere
 
-BACKGROUND: Clean warm cream gradient. Premium, minimal.
+COMPOSITION:
+- 2:3 vertical format
+- Child centered, book open, magic flowing upward
+- Background: warm gradient, cozy setting fading into magical bokeh
+- Premium, cinematic Pixar quality
 
-BOTTOM TEXT (Turkish, clean modern font):
+BOTTOM TEXT (Turkish, clean warm font):
 "Her çocuk kendi hikayesinin kahramanı"
+Turkish characters (ş, ğ, ü, ö, ç, ı, İ) PERFECT
 
-Turkish characters (ş, ğ, ü, ö, ç, ı, İ) PERFECT. This is THE marketing image — shows parents exactly what the product does.`;
+3D PIXAR STYLE:
+- Same quality as Pixar movie marketing posters
+- Rich lighting, volumetric effects, particle magic
+- Character identical to reference portrait
+- NOT 2D, NOT realistic photo — pure Pixar CGI magic
 
-  const imageUrl = await generateImage(prompt, [realPhotoRef, frontCoverRef], "2:3");
+This is THE conversion image — it shows parents the magical experience their child will have with this personalized book.`;
+
+  const imageUrl = await generateImage(prompt, [characterPortraitRef, frontCoverRef], "2:3");
   return { imageUrl, prompt };
 }

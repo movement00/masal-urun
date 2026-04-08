@@ -20,10 +20,12 @@ export interface GeneratedVisual {
   id: string;
   type:
     | "real_photo"
+    | "character_portrait"
     | "front_cover"
     | "back_cover"
     | "hook_lifestyle"
-    | "transformation";
+    | "transformation"
+    | "conversion";
   label: string;
   imageUrl: string;
   prompt: string;
@@ -55,9 +57,11 @@ export interface GeneratedBook {
 export type GenerationStage =
   | "idle"
   | "concept"
+  | "character"
   | "real_photo"
   | "covers"
   | "hook"
+  | "conversion"
   | "seo"
   | "done"
   | "error";

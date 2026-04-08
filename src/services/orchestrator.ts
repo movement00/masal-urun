@@ -1,7 +1,7 @@
 import { generateBookConcept, generateBookConceptFromPrompt } from "./conceptAgent";
 import { generateCharacterReferences } from "./characterReferenceAgent";
 import { generateCoverImage, generateBackCover } from "./coverAgent";
-import { generateHookVisual, generateTransformationVisual } from "./hookAgent";
+import { generateHookVisual, generateConversionVisual } from "./hookAgent";
 import { generateSeoContent } from "./seoAgent";
 import { getPreviousTitles, saveBook } from "../lib/storage";
 import type { Category } from "../categories";
@@ -18,12 +18,12 @@ export interface GenerationProgress {
 export type ProgressCallback = (progress: GenerationProgress) => void;
 
 /**
- * Simplified 5-visual pipeline:
- * 1. Real child photo (iPhone candid)
- * 2. Front cover (Pixar 3D)
- * 3. Back cover
- * 4. Hook lifestyle (eating/sleeping with book)
- * 5. Transformation (real → Pixar split-screen)
+ * 5-visual pipeline — all 3D Pixar style:
+ * 1. Character portrait (3D Pixar reference — "DNA" of all visuals)
+ * 2. Front cover (3D Pixar book cover)
+ * 3. Back cover (matching front cover style)
+ * 4. Hook lifestyle (child reading book in natural Turkish setting, Pixar style)
+ * 5. Conversion visual (magical marketing image, Pixar style)
  */
 async function runPipeline(
   concept: import("../types").BookConcept,
@@ -32,50 +32,50 @@ async function runPipeline(
 ): Promise<GeneratedBook> {
   const bookId = `book-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
-  // STAGE 1: Real child photo (iPhone candid — this IS a deliverable)
-  onProgress({ stage: "real_photo", message: "Gerçekçi çocuk fotoğrafı üretiliyor..." });
-  const { realPhoto } = await generateCharacterReferences(concept);
-  const realPhotoVisual: GeneratedVisual = {
-    id: "real_photo", type: "real_photo", label: "Gerçek Çocuk Fotoğrafı",
-    imageUrl: realPhoto, prompt: "(iPhone candid reference)",
+  // STAGE 1: 3D Pixar character portrait (reference for all other visuals)
+  onProgress({ stage: "character", message: "3D Pixar karakter portresi üretiliyor..." });
+  const { characterPortrait } = await generateCharacterReferences(concept);
+  const characterVisual: GeneratedVisual = {
+    id: "character_portrait", type: "character_portrait", label: "Karakter Portresi (3D Pixar)",
+    imageUrl: characterPortrait, prompt: "(Pixar character reference)",
   };
-  onProgress({ stage: "real_photo", message: "✅ Çocuk fotoğrafı hazır", newVisual: realPhotoVisual });
+  onProgress({ stage: "character", message: "✅ Karakter portresi hazır", newVisual: characterVisual });
 
-  // STAGE 2: Front cover (Pixar 3D, uses real photo for face reference)
+  // STAGE 2: Front cover (uses character portrait for face reference)
   onProgress({ stage: "covers", message: "Ön kapak tasarlanıyor..." });
-  const { imageUrl: frontUrl, prompt: frontPrompt } = await generateCoverImage(category, concept, realPhoto);
+  const { imageUrl: frontUrl, prompt: frontPrompt } = await generateCoverImage(category, concept, characterPortrait);
   const frontCoverVisual: GeneratedVisual = {
     id: "front_cover", type: "front_cover", label: "Ön Kapak",
     imageUrl: frontUrl, prompt: frontPrompt,
   };
   onProgress({ stage: "covers", message: "✅ Ön kapak hazır", newVisual: frontCoverVisual });
 
-  // STAGE 3: Back cover
+  // STAGE 3: Back cover (uses both character portrait + front cover for consistency)
   onProgress({ stage: "covers", message: "Arka kapak tasarlanıyor..." });
-  const { imageUrl: backUrl, prompt: backPrompt } = await generateBackCover(concept, frontUrl);
+  const { imageUrl: backUrl, prompt: backPrompt } = await generateBackCover(concept, frontUrl, characterPortrait);
   const backCoverVisual: GeneratedVisual = {
     id: "back_cover", type: "back_cover", label: "Arka Kapak",
     imageUrl: backUrl, prompt: backPrompt,
   };
   onProgress({ stage: "covers", message: "✅ Arka kapak hazır", newVisual: backCoverVisual });
 
-  // STAGE 4: Hook lifestyle (eating or sleeping with book)
-  onProgress({ stage: "hook", message: "Yaşam anı görseli üretiliyor..." });
-  const hookResult = await generateHookVisual(concept, realPhoto, frontUrl);
+  // STAGE 4: Hook lifestyle (child reading book in natural setting, Pixar style)
+  onProgress({ stage: "hook", message: "Hook görseli üretiliyor..." });
+  const hookResult = await generateHookVisual(concept, characterPortrait, frontUrl);
   const hookVisual: GeneratedVisual = {
     id: "hook_lifestyle", type: "hook_lifestyle", label: `Hook: ${hookResult.label}`,
     imageUrl: hookResult.imageUrl, prompt: hookResult.prompt,
   };
   onProgress({ stage: "hook", message: `✅ ${hookResult.label} hazır`, newVisual: hookVisual });
 
-  // STAGE 5: Transformation (real → Pixar)
-  onProgress({ stage: "hook", message: "Dönüşüm görseli üretiliyor..." });
-  const transResult = await generateTransformationVisual(concept, realPhoto, frontUrl);
-  const transVisual: GeneratedVisual = {
-    id: "transformation", type: "transformation", label: "Dönüşüm: Gerçek → Kahraman",
-    imageUrl: transResult.imageUrl, prompt: transResult.prompt,
+  // STAGE 5: Conversion visual (magical marketing image)
+  onProgress({ stage: "conversion", message: "Dönüşüm görseli üretiliyor..." });
+  const convResult = await generateConversionVisual(concept, characterPortrait, frontUrl);
+  const convVisual: GeneratedVisual = {
+    id: "conversion", type: "conversion", label: "Dönüşüm: Kitabın Büyüsü",
+    imageUrl: convResult.imageUrl, prompt: convResult.prompt,
   };
-  onProgress({ stage: "hook", message: "✅ Dönüşüm görseli hazır", newVisual: transVisual });
+  onProgress({ stage: "conversion", message: "✅ Dönüşüm görseli hazır", newVisual: convVisual });
 
   // STAGE 6: SEO Content
   onProgress({ stage: "seo", message: "SEO içeriği üretiliyor..." });
@@ -87,7 +87,7 @@ async function runPipeline(
     categoryId: category.id,
     category,
     concept,
-    visuals: [realPhotoVisual, frontCoverVisual, backCoverVisual, hookVisual, transVisual],
+    visuals: [characterVisual, frontCoverVisual, backCoverVisual, hookVisual, convVisual],
     seo,
     createdAt: Date.now(),
     status: "completed",
