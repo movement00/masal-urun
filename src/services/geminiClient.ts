@@ -1,15 +1,21 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
-const apiKey = import.meta.env.VITE_GEMINI_API_KEY || "";
+let apiKey = localStorage.getItem("gemini_api_key") || "";
 
-if (!apiKey) {
-  console.warn("VITE_GEMINI_API_KEY not set");
-}
+export const setApiKey = (key: string) => {
+  apiKey = key;
+  localStorage.setItem("gemini_api_key", key);
+};
+
+export const getApiKey = () => apiKey;
 
 const ANALYSIS_MODEL = "gemini-3.1-pro-preview";
 const IMAGE_GEN_MODEL = "gemini-3.1-flash-image-preview";
 
-const getClient = () => new GoogleGenAI({ apiKey });
+const getClient = () => {
+  if (!apiKey) throw new Error("API anahtarı ayarlanmadı. Ayarlardan API key girin.");
+  return new GoogleGenAI({ apiKey });
+};
 
 export { ANALYSIS_MODEL, IMAGE_GEN_MODEL, getClient, Type };
 

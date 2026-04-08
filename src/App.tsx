@@ -5,8 +5,9 @@ import type { GeneratedBook, GeneratedVisual, BookConcept } from "./types";
 import { getAllBooks, getBooksByCategory, deleteBook } from "./lib/storage";
 import { generateNewBook, generateNewBookFromPrompt } from "./services/orchestrator";
 import type { GenerationProgress } from "./services/orchestrator";
+import { getApiKey, setApiKey } from "./services/geminiClient";
 
-type View = "home" | "category" | "generating" | "book-detail";
+type View = "home" | "category" | "generating" | "book-detail" | "settings";
 
 function App() {
   const [view, setView] = useState<View>("home");
@@ -117,8 +118,11 @@ function App() {
               <p className="text-[10px] font-mono text-purple-500 uppercase tracking-widest">Ürün Stüdyosu</p>
             </div>
           </button>
-          <div className="text-xs text-purple-600 font-mono">
-            {books.length} kitap üretildi
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-purple-600 font-mono">{books.length} kitap</span>
+            <button onClick={() => setView("settings")} className="text-purple-400 hover:text-purple-700 transition-colors" title="Ayarlar">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+            </button>
           </div>
         </div>
       </header>
@@ -154,6 +158,10 @@ function App() {
             onDownload={() => downloadBookAssets(selectedBook)}
             onDelete={() => removeBook(selectedBook.id)}
           />
+        )}
+
+        {view === "settings" && (
+          <SettingsView onBack={() => setView("home")} />
         )}
       </main>
     </div>
@@ -513,6 +521,72 @@ function BookDetailView({ book, onBack, onDownload, onDelete }: {
             </div>
           )}
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══ SETTINGS VIEW ═══
+function SettingsView({ onBack }: { onBack: () => void }) {
+  const [key, setKey] = useState(getApiKey());
+  const [showKey, setShowKey] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  const handleSave = () => {
+    if (!key.trim()) return;
+    setApiKey(key.trim());
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
+
+  const _maskedKey = key ? `${"•".repeat(Math.max(0, key.length - 4))}${key.slice(-4)}` : "Ayarlanmamış"; void _maskedKey;
+
+  return (
+    <div className="max-w-md mx-auto space-y-6">
+      <div className="flex items-center gap-3 mb-4">
+        <button onClick={onBack} className="text-purple-600 hover:text-purple-900">← Geri</button>
+        <h2 className="font-display text-xl font-bold text-purple-900">Ayarlar</h2>
+      </div>
+
+      <div className="bg-white rounded-2xl border border-purple-100 p-5 space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-bold text-purple-900 uppercase tracking-wider">Gemini API Anahtarı</h3>
+          <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener" className="text-xs text-purple-500 hover:text-purple-700">
+            Yeni anahtar al →
+          </a>
+        </div>
+
+        <div className="relative">
+          <input
+            type={showKey ? "text" : "password"}
+            value={key}
+            onChange={(e) => setKey(e.target.value)}
+            placeholder="AIzaSy..."
+            autoComplete="off"
+            className="w-full pr-10 px-4 py-3 bg-purple-50 border border-purple-200 rounded-xl text-sm text-purple-900 placeholder:text-purple-400 font-mono focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
+          />
+          <button
+            type="button"
+            onClick={() => setShowKey(!showKey)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-purple-400 hover:text-purple-600"
+          >
+            {showKey ? "🙈" : "👁️"}
+          </button>
+        </div>
+
+        <div className="flex gap-2">
+          <button
+            onClick={handleSave}
+            disabled={!key.trim()}
+            className="flex-1 py-2.5 bg-purple-600 text-white rounded-xl font-semibold text-sm hover:bg-purple-700 disabled:bg-purple-300 disabled:cursor-not-allowed transition-colors"
+          >
+            {saved ? "✓ Kaydedildi" : "Kaydet"}
+          </button>
+        </div>
+
+        <p className="text-xs text-purple-400 font-mono text-center">
+          Anahtar yalnızca tarayıcınızda saklanır · Sunucuya gönderilmez
+        </p>
       </div>
     </div>
   );
