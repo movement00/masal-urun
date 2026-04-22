@@ -1,0 +1,128 @@
+import { generateImage } from "./geminiClient";
+import type { BookConcept } from "../types";
+
+/**
+ * Flat-lay mockup — book lying flat with lifestyle props, top-down view
+ */
+export async function generateFlatLay(
+  concept: BookConcept,
+  frontCoverRef: string
+): Promise<{ imageUrl: string; prompt: string }> {
+  const prompt = `Top-down flat-lay product photograph of a thin soft-cover A4 children's storybook "${concept.baslik}".
+
+LAYOUT: Bird's-eye view (directly from above), the book lies FLAT in the center of the frame.
+
+THE BOOK: Thin soft-cover magazine-style children's book. The front cover is clearly visible showing the exact artwork from the reference image. A4 size, thin and flexible.
+
+PROPS AROUND THE BOOK (arranged aesthetically):
+- Colored pencils (scattered naturally, warm tones)
+- A small plush toy (bunny or bear, soft and cute)
+- A few dried flowers or a small succulent
+- A warm cup of cocoa/milk (small, ceramic, cute)
+- A pair of tiny children's glasses (optional, for charm)
+- Small star-shaped confetti or sparkle stickers scattered lightly
+- A small handwritten note card saying "Seninle başlıyor ✨"
+
+SURFACE: Clean warm cream/beige linen tablecloth or light wooden table. Natural texture visible.
+
+LIGHTING: Bright soft natural daylight from above-left. Gentle shadows. Clean and airy.
+
+STYLE: Instagram-worthy product flat-lay. Professional e-commerce photography. Warm, inviting, premium but playful. Think Papier or Rifle Paper Co product shots.
+
+TECHNICAL: Sharp focus on the book, slight natural vignette. Clean bright image. No text overlays. 2:3 portrait format.`;
+
+  const imageUrl = await generateImage(prompt, [frontCoverRef], "2:3");
+  return { imageUrl, prompt };
+}
+
+/**
+ * Open book interior — showing illustrated pages inside
+ */
+export async function generateOpenBook(
+  concept: BookConcept,
+  frontCoverRef: string
+): Promise<{ imageUrl: string; prompt: string }> {
+  const { baslik, kahraman, sahneler } = concept;
+  const scene = sahneler[1] || sahneler[0] || "magical adventure scene";
+
+  const prompt = `Product photograph of the children's storybook "${baslik}" lying OPEN, showing an interior illustrated spread.
+
+THE OPEN BOOK: A4 soft-cover storybook opened to a middle page. Two illustrated pages visible side by side.
+
+LEFT PAGE: A vivid 3D Pixar-style illustration showing the character ${kahraman.isim} in "${scene}". The character matches the cover art from the reference image. Colorful, detailed, magical scene.
+
+RIGHT PAGE: Turkish story text (3-4 paragraphs) with the child's name "${kahraman.isim}" highlighted/bold in the text. Clean readable children's book typography. Warm cream paper texture.
+
+SETTING: The book lies on a clean warm surface (light wood desk or cream blanket). Slightly angled to show page depth. A child's hand gently touching the bottom corner of a page (as if turning it).
+
+LIGHTING: Warm soft natural light. Pages well-lit and readable. Slight page shadow at the spine.
+
+STYLE: Professional book interior preview photograph. Shows the customer exactly what the inside looks like. Premium quality printing visible. Clean, bright, inviting.
+
+TECHNICAL: Sharp focus on the book pages. Background softly blurred. 2:3 portrait format.`;
+
+  const imageUrl = await generateImage(prompt, [frontCoverRef], "2:3");
+  return { imageUrl, prompt };
+}
+
+/**
+ * Gift box presentation — book emerging from MasalSensin gift box
+ */
+export async function generateGiftBox(
+  concept: BookConcept,
+  frontCoverRef: string
+): Promise<{ imageUrl: string; prompt: string }> {
+  const prompt = `Beautiful gift presentation photograph of the children's storybook "${concept.baslik}" in a premium gift box.
+
+THE GIFT BOX: A beautiful cream/white magnetic closure gift box with a warm orange ribbon/bow. The box is OPEN, lid tilted back, revealing the book inside nestled in cream tissue paper. The book cover is clearly visible from the reference image.
+
+DETAILS:
+- Tissue paper: soft cream, slightly crinkled naturally
+- A small "MasalSensin" branded card or tag attached to the ribbon
+- Small dried flower sprig or a tiny sparkle star tucked beside the book
+- The book peeks out invitingly — "unwrap me" feeling
+
+SETTING: Clean warm surface (marble, light wood, or cream linen). Soft natural window light from the side. Warm golden tones.
+
+MOOD: "The perfect gift." Premium, thoughtful, special. This photo should make someone think "I want to give THIS to someone I love." Gift-giving joy.
+
+STYLE: Luxury gift brand photography (think Jo Malone, Mejuri unboxing). Clean, warm, premium. Instagram-worthy unboxing moment.
+
+TECHNICAL: Sharp focus on box + book, background softly blurred. Warm color grading. 2:3 portrait format.`;
+
+  const imageUrl = await generateImage(prompt, [frontCoverRef], "2:3");
+  return { imageUrl, prompt };
+}
+
+/**
+ * Front + Back cover together — showing both covers in elegant composition
+ */
+export async function generateCoverDuo(
+  concept: BookConcept,
+  frontCoverRef: string,
+  backCoverRef: string
+): Promise<{ imageUrl: string; prompt: string }> {
+  const prompt = `Elegant product photograph showing BOTH the front cover AND back cover of the children's storybook "${concept.baslik}" together in one beautiful composition.
+
+LAYOUT: Two copies of the thin soft-cover A4 book arranged together:
+- FRONT COVER: slightly overlapping, tilted 5-10° to the left, fully visible, prominently displayed
+- BACK COVER: behind/beside the front cover, tilted slightly opposite direction, partially visible but the "Masal Bitti Ama İzleri Kaldı..." header and achievement grid clearly readable
+
+Both book covers MUST match the reference images exactly — first reference = front, second reference = back.
+
+ARRANGEMENT OPTIONS (pick most aesthetic):
+- Front cover standing/leaning, back cover lying flat underneath at an angle
+- Both leaning against each other like a tent/A-frame
+- Front cover on top, back cover fanned out behind
+
+SETTING: Clean warm cream surface with subtle texture. A few small decorative elements (sparkle confetti, a small flower, warm light).
+
+LIGHTING: Bright warm natural light. Both covers well-lit and clearly readable. Soft natural shadows showing book thinness.
+
+STYLE: Professional publishing house product shot. Shows the customer "this is the complete package — front and back." Premium quality visible. Clean, bright, warm.
+
+TECHNICAL: Both covers sharp and legible. Turkish text on both covers perfect. Warm color grading. 2:3 portrait format.`;
+
+  const imageUrl = await generateImage(prompt, [frontCoverRef, backCoverRef], "2:3");
+  return { imageUrl, prompt };
+}

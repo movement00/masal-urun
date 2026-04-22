@@ -437,6 +437,7 @@ function BookDetailView({ book, onBack, onDownload, onDelete }: {
             <button onClick={onDownload} className="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-purple-700">
               ⬇ Hepsini İndir
             </button>
+            <SendToMasalButton book={book} />
             <button onClick={onDelete} className="bg-white border border-red-200 text-red-600 px-3 py-2 rounded-lg text-sm">
               Sil
             </button>
@@ -588,6 +589,66 @@ function SettingsView({ onBack }: { onBack: () => void }) {
           Anahtar yalnızca tarayıcınızda saklanır · Sunucuya gönderilmez
         </p>
       </div>
+    </div>
+  );
+}
+
+function SendToMasalButton({ book }: { book: GeneratedBook }) {
+  const [status, setStatus] = useState<"idle" | "sending" | "done" | "error">("idle");
+  const [result, setResult] = useState<{ bookId?: string; message?: string } | null>(null);
+  const MASAL_URL = "http://localhost:3000/api/story/import-concept";
+
+  async function send() {
+    setStatus("sending");
+    setResult(null);
+    try {
+      const res = await fetch(MASAL_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          concept: book.concept,
+          visuals: book.visuals.map(v => ({ id: v.id, type: v.type, label: v.label, imageUrl: v.imageUrl, prompt: v.prompt })),
+          seo: book.seo,
+          ageGroup: book.concept.yasGrubu || "3-6",
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.text();
+        setStatus("error");
+        setResult({ message: "Hata: " + err.slice(0, 200) });
+        return;
+      }
+      const data = await res.json();
+      setStatus("done");
+      setResult({ bookId: data.bookId, message: "Masal'a gönderildi! Book ID: " + data.bookId });
+    } catch (e: any) {
+      setStatus("error");
+      setResult({ message: "Masal sunucusuna bağlanılamadı (http://localhost:3000 açık mı?): " + e.message });
+    }
+  }
+
+  return (
+    <div className="relative">
+      <button
+        onClick={send}
+        disabled={status === "sending"}
+        className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:from-amber-600 hover:to-orange-600 disabled:opacity-60"
+        title="Bu konseptten Masal uygulamasında tam hikaye üret"
+      >
+        {status === "sending" ? "Gönderiliyor..." : status === "done" ? "✅ Gönderildi" : "📖 Masal'a Gönder"}
+      </button>
+      {result?.message && (
+        <div className={`absolute top-full right-0 mt-2 w-80 p-3 rounded-lg text-xs shadow-lg z-10 ${
+          status === "done" ? "bg-green-50 text-green-900 border border-green-200" : "bg-red-50 text-red-900 border border-red-200"
+        }`}>
+          {result.message}
+          {result.bookId && (
+            <p className="mt-2">
+              Masal'da görmek için: <a href={"http://localhost:3000/"} target="_blank" rel="noreferrer" className="underline font-semibold">localhost:3000</a>
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 }

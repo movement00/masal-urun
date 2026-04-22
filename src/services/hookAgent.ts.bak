@@ -1,0 +1,81 @@
+import { generateImage } from "./geminiClient";
+import type { BookConcept } from "../types";
+
+function pick<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
+
+const HOOK_SCENES = [
+  {
+    label: "Yemek Yerken",
+    scene: (c: BookConcept) => `Beautiful bright iPhone portrait photo: the child (from reference photo — EXACT same child, same face) sitting at a sunny breakfast table near a window, morning light flooding in. The thin soft-cover storybook "${c.baslik}" is propped open beside their plate. Child is paused mid-bite, looking at the book with fascination. Cheerful healthy Turkish breakfast — colorful plate with cheese, tomatoes, fresh bread, a glass of milk. Clean bright kitchen, warm sunlight, flowers in a vase. The child is wearing their everyday clothes (from reference). Book cover clearly visible. Instagram-worthy moment — "yemeği bile unutuyor!" Sweet, warm, bright.`,
+  },
+  {
+    label: "Uyurken Kitapla",
+    scene: (c: BookConcept) => `Warm tender iPhone photo: the child (from reference photo — EXACT same child) lying in a cozy bed with clean white sheets and a soft colorful blanket, having fallen asleep while reading. The soft-cover book "${c.baslik}" rests open on their chest, one small hand still touching a page. Warm soft bedside lamp casting golden glow. Child's face peaceful and angelic, small smile, relaxed. A plush teddy bear tucked beside them. Room is TIDY and warm — fairy lights on the wall, a few books on the nightstand. Soft warm tones, cozy intimate moment. A photo every parent wants to take of their child. Instagram-caption-worthy tender moment.`,
+  },
+  {
+    label: "Parkta Kitap Okuyor",
+    scene: (c: BookConcept) => `Bright sunny iPhone photo: the child (from reference photo — EXACT same child) sitting cross-legged on vivid green grass in a sunny park, deeply absorbed in reading the soft-cover storybook "${c.baslik}". Dappled sunlight through trees, blue sky visible. The child is smiling down at an illustrated page, completely captivated. Book cover clearly visible. Cheerful outdoor setting — flowers, trees, warm sunshine. A natural candid moment of a child lost in their own story. Bright, joyful, Instagram-worthy.`,
+  },
+  {
+    label: "Anne Kucağında",
+    scene: (c: BookConcept) => `Warm iPhone photo: the child (from reference photo — EXACT same child) sitting in their mother's lap on a cozy couch, both looking at the open storybook "${c.baslik}" together. Mother's hands gently holding the book open, child pointing at an illustration excitedly. Warm living room with soft afternoon light. Both smiling and engaged. Intimate family reading moment. Book cover visible from the angle. Warm, loving, authentic family moment.`,
+  },
+];
+
+/**
+ * Generates ONE hook/kanca lifestyle photo — child naturally living with the book.
+ * Uses the real-child reference photo for face consistency.
+ */
+export async function generateHookVisual(
+  concept: BookConcept,
+  realPhotoRef: string,
+  frontCoverRef: string
+): Promise<{ imageUrl: string; prompt: string; label: string }> {
+  const hook = pick(HOOK_SCENES);
+  const prompt = `${hook.scene(concept)}
+
+PHOTO QUALITY:
+- iPhone 15 Pro portrait mode — natural bokeh, face sharp
+- Warm natural lighting — NOT dark, NOT gloomy
+- Clean, bright, cheerful environment
+- NO AI tells: no waxy skin, no merged fingers, no floating objects
+- The child must look IDENTICAL to the reference photo — same face, same features, same gender
+- The book in the scene must show the cover from the second reference image
+- This should look like an Instagram-worthy family moment`;
+
+  const imageUrl = await generateImage(prompt, [realPhotoRef, frontCoverRef], "3:4");
+  return { imageUrl, prompt, label: hook.label };
+}
+
+/**
+ * Generates the transformation visual: real photo → Pixar story character.
+ * Split-screen marketing image.
+ */
+export async function generateTransformationVisual(
+  concept: BookConcept,
+  realPhotoRef: string,
+  frontCoverRef: string
+): Promise<{ imageUrl: string; prompt: string }> {
+  const prompt = `Split-screen marketing visual for "${concept.baslik}" — a personalized children's book.
+
+LAYOUT: Clean vertical split (50/50).
+
+LEFT SIDE — "Gerçek":
+A polaroid-frame snapshot of the real child (from FIRST reference image — same child, same face, SAME CLOTHING). Polaroid slightly tilted, with a small handwritten caption: "Senin çocuğun". Warm, bright, authentic feel. The real iPhone photo aesthetic.
+
+RIGHT SIDE — "Kahraman":
+The same child transformed into their 3D Pixar-style storybook character. CRITICAL: SAME CLOTHING as the real photo on the left side — same colors, same style, Pixar-ified version of the exact same outfit. Same recognizable face features but Pixar-ified: bigger eyes, softer proportions, vibrant cartoon world around them. Small caption: "Onun hikayesi"
+
+CENTER TRANSITION:
+Soft sparkle/magic dust effect connecting the two sides. A gentle glowing arrow "→" or stardust trail.
+
+BACKGROUND: Clean warm cream gradient. Premium, minimal.
+
+BOTTOM TEXT (Turkish, clean modern font):
+"Her çocuk kendi hikayesinin kahramanı"
+
+Turkish characters (ş, ğ, ü, ö, ç, ı, İ) PERFECT. This is THE marketing image — shows parents exactly what the product does.`;
+
+  const imageUrl = await generateImage(prompt, [realPhotoRef, frontCoverRef], "2:3");
+  return { imageUrl, prompt };
+}

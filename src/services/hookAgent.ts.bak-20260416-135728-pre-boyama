@@ -1,0 +1,157 @@
+import { generateImage } from "./geminiClient";
+import type { BookConcept } from "../types";
+
+function pick<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
+
+// Randomized ambiance pools — each hook picks one from each pool so backgrounds VARY across generations
+const BEDROOM_WALLS = ["soft cream wall", "dusty mint-green wall", "pale rose-pink wall", "lavender pastel wall", "warm beige wall with wainscoting", "muted sage-green wall", "light grey-blue wall"];
+const BEDROOM_BEDDING = ["striped pastel duvet", "star-pattern blanket", "plain warm mustard throw", "geometric navy-cream quilt", "floral sprig pattern sheets", "chunky knit cream blanket"];
+const BEDROOM_PLUSH = ["a teddy bear", "a plush bunny", "a fuzzy fox plush", "a small sloth plush", "a handmade rag doll", "a tiny lion plush"];
+const BEDROOM_LIGHT = ["warm bedside lamp with amber shade", "string of warm fairy lights above the headboard", "small mushroom-shaped night lamp", "paper moon wall lamp glowing soft", "cluster of tiny star lights", "dim globe pendant casting golden pool"];
+const BEDROOM_EXTRA = ["a tiny wooden shelf with 3-4 books", "a framed illustration of a hot-air balloon on the wall", "a small potted plant on the nightstand", "a dreamcatcher hanging near the window", "a cozy rug with geometric pattern", "a canopy of soft tulle draped over the bed"];
+
+const KITCHEN_STYLES = ["modern scandinavian white kitchen", "rustic wooden farmhouse kitchen", "cozy family corner with round breakfast table", "sunny cafe-style kitchen with pendant lights", "warm boho kitchen with hanging plants", "traditional Turkish home with patterned tiles"];
+const KITCHEN_BREAKFAST = ["classic Turkish breakfast — cheese, tomato, olives, bread, milk", "fruit bowl with strawberries and pancakes", "simple toast with honey and fresh orange juice", "çilek, muz ve yoğurtlu müsli bowl", "scrambled egg, cheese cubes, and a glass of milk", "simit, peynir, and a warm çay glass"];
+const KITCHEN_LIGHT = ["bright morning sun through a large window", "soft diffused light through sheer curtains", "golden backlight from behind the child", "overcast-soft daylight, even tones"];
+
+const PARK_SETTINGS = ["a grassy picnic hill under a big oak tree", "wildflower meadow with soft breeze", "cherry-blossom garden path in spring", "lakeside bench with blue water behind", "sun-dappled forest clearing", "autumn park with golden leaves on the ground", "colorful playground with a plaid picnic blanket on the grass"];
+const PARK_LIGHT = ["warm golden-hour side light", "bright mid-day dappled sunlight through leaves", "soft overcast glow", "sunset backlight with long shadows"];
+
+const LIVINGROOM_SOFAS = ["cream linen couch with textured throw pillows", "warm terracotta velvet sofa", "sage-green sofa with boucle cushions", "navy blue couch with cream throw blanket", "beige corner sofa with Berber rug in front"];
+const LIVINGROOM_STYLES = ["modern scandi living room with tall windows", "cozy boho living room with plants and macrame", "classic Turkish home with bookcase and rug", "minimalist warm-wood living room", "bright coastal living room with driftwood accents"];
+const LIVINGROOM_LIGHT = ["soft afternoon golden light through sheer curtains", "warm side lamp glow + dim daylight", "bright mid-morning window light", "sunset orange tones flooding the room"];
+
+const HOOK_SCENES = [
+  {
+    label: "Yemek Yerken",
+    scene: (c: BookConcept) => {
+      const style = pick(KITCHEN_STYLES);
+      const breakfast = pick(KITCHEN_BREAKFAST);
+      const light = pick(KITCHEN_LIGHT);
+      return `Beautiful bright iPhone portrait photo: the child (from reference photo — EXACT same child, same face) sitting at a ${style}, ${light}. A THIN FLEXIBLE A4 magazine-style paperback (NOT hardcover, NOT thick spine — looks like a soft children's magazine, ~5mm thick maximum) — "${c.baslik}" — is propped open beside their plate. The book MUST look thin and bendy, like a magazine; if it appears as a thick hardcover or chunky bound book, the image is WRONG. Child is paused mid-bite, looking at the book with fascination. Breakfast scene: ${breakfast}. The child is wearing their everyday clothes (from reference). Book cover clearly visible. Instagram-worthy moment — "yemeği bile unutuyor!" Sweet, warm, bright.`;
+    },
+  },
+  {
+    label: "Uyurken Kitapla",
+    scene: (c: BookConcept) => {
+      const wall = pick(BEDROOM_WALLS);
+      const bedding = pick(BEDROOM_BEDDING);
+      const plush = pick(BEDROOM_PLUSH);
+      const light = pick(BEDROOM_LIGHT);
+      const extra = pick(BEDROOM_EXTRA);
+      return `Warm tender iPhone photo: the child (from reference photo — EXACT same child) lying in a cozy bed, having fallen asleep while reading. Room has a ${wall}, ${bedding} on the bed. The THIN FLEXIBLE A4 magazine-style paperback (NOT hardcover, ~5mm thick max, soft bendy cover) "${c.baslik}" rests open on their chest, one small hand still touching a page. Lighting: ${light}. Child's face peaceful and angelic, small smile, relaxed. ${plush.charAt(0).toUpperCase() + plush.slice(1)} tucked beside them. Room detail: ${extra}. Soft warm tones, cozy intimate moment. A photo every parent wants to take of their child. Instagram-caption-worthy tender moment.`;
+    },
+  },
+  {
+    label: "Parkta Kitap Okuyor",
+    scene: (c: BookConcept) => {
+      const setting = pick(PARK_SETTINGS);
+      const light = pick(PARK_LIGHT);
+      return `Bright sunny iPhone photo: the child (from reference photo — EXACT same child) sitting cross-legged in ${setting}, ${light}. Deeply absorbed in reading the THIN FLEXIBLE A4 magazine-style paperback (NOT hardcover, ~5mm thick max, soft bendy cover) "${c.baslik}". Blue sky visible. The child is smiling down at an illustrated page, completely captivated. Book cover clearly visible. A natural candid moment of a child lost in their own story. Bright, joyful, Instagram-worthy.`;
+    },
+  },
+  {
+    label: "Anne Kucağında",
+    scene: (c: BookConcept) => {
+      const sofa = pick(LIVINGROOM_SOFAS);
+      const style = pick(LIVINGROOM_STYLES);
+      const light = pick(LIVINGROOM_LIGHT);
+      return `Warm iPhone photo: the child (from reference photo — EXACT same child) sitting in their mother's lap on a ${sofa}, in a ${style}. Both looking at the open THIN FLEXIBLE A4 magazine-style paperback (NOT hardcover, ~5mm thick max, soft bendy cover) "${c.baslik}" together. Mother's hands gently holding the book open, child pointing at an illustration excitedly. Lighting: ${light}. Both smiling and engaged. Intimate family reading moment. Book cover visible from the angle. Warm, loving, authentic family moment.`;
+    },
+  },
+];
+
+/**
+ * Generates ONE hook/kanca lifestyle photo — child naturally living with the book.
+ * Uses the real-child reference photo for face consistency.
+ */
+export async function generateHookVisual(
+  concept: BookConcept,
+  realPhotoRef: string,
+  frontCoverRef: string
+): Promise<{ imageUrl: string; prompt: string; label: string }> {
+  const hook = pick(HOOK_SCENES);
+  const prompt = `${hook.scene(concept)}
+
+PHOTO QUALITY:
+- iPhone 15 Pro portrait mode — natural bokeh, face sharp
+- Warm natural lighting — NOT dark, NOT gloomy
+- Clean, bright, cheerful environment
+- NO AI tells: no waxy skin, no merged fingers, no floating objects
+- The child must look IDENTICAL to the FIRST reference photo — same face, same features, same gender
+
+═══ BOOK COVER REPRODUCTION (CRITICAL) ═══
+- The book in the child's hands MUST be EXACTLY the book from the SECOND reference image
+- Reproduce the SECOND reference image's artwork AS-IS on the book cover: same title ("${concept.baslik}"), same character illustration, same colors, same layout, same typography
+- This is NOT a generic children's book — this is THAT SPECIFIC book being held
+- The child is holding OUR product, not a random storybook
+- If you draw a generic fantasy cover or different title, the image is WRONG
+
+═══ BOOK FORMAT — MAGAZINE STYLE, NEVER HARDCOVER (CRITICAL) ═══
+- Format: THIN FLEXIBLE A4 PAPERBACK, magazine-style, saddle-stitched. Soft bendy paper cover, no rigid spine.
+- DEFINITELY NOT hardcover, NOT thick spine, NO embossed title, NO leather/cloth cover, NO rigid binding.
+- Think: thin children's magazine or large soft picture book — flexible, light, can be rolled gently.
+- If you draw a hardcover, thick book, leather binding or rigid spine, the image is WRONG.
+
+- This should look like an Instagram-worthy family moment`;
+
+  const imageUrl = await generateImage(prompt, [realPhotoRef, frontCoverRef], "3:4");
+  return { imageUrl, prompt, label: hook.label };
+}
+
+/**
+ * Generates the transformation visual: real photo → Pixar story character.
+ * Split-screen marketing image.
+ */
+export async function generateTransformationVisual(
+  concept: BookConcept,
+  realPhotoRef: string,
+  frontCoverRef: string
+): Promise<{ imageUrl: string; prompt: string }> {
+  const prompt = `Cinematic Pixar-style "transformation" key-art for the personalized children's book "${concept.baslik}" — 2:3 portrait, premium product listing photo, single unified composition (NOT a hard split).
+
+═══ COMPOSITION — magical seamless blend (NO HARD 50/50 SPLIT) ═══
+- LEFT half: a small modern Instax-mini polaroid frame floating mid-air, holding the REAL child photo (from FIRST reference image — same child, same face, SAME CLOTHING). Polaroid slightly tilted ~6°, mild film grain, no handwritten text on the polaroid itself.
+- CENTER: a magical horizontal stream of golden-orange sparkle dust + glowing micro-stars + soft light particles flowing from the polaroid TOWARD the right side, dissolving into the right character. This stream IS the visual transformation; no hard divider.
+- RIGHT half: the SAME child reborn as a 3D Pixar/Ice-Age style storybook hero (matching the cover reference image style). CRITICAL: SAME CLOTHING colors and style as the real photo on the left, just Pixar-ified. Recognizable face: same hair, same eye color, same skin tone, same gender. The character has a soft warm GOLDEN HALO / rim-light around the silhouette as if magic energy is glowing on them. Confident hero pose, gentle smile, eye contact with viewer.
+
+═══ BACKGROUND — cinematic atmosphere ═══
+- An OPEN STORYBOOK lies horizontally at the bottom of the frame, slightly out of focus, pages glowing soft warm light from inside. The polaroid + sparkle stream + Pixar character all "rise from the book", as if the character is being born from the pages.
+- Above and behind: a soft warm dusk-sky atmosphere — gentle navy-to-coral gradient, distant fairy-tale castle silhouette barely visible far in the background, a few faint stars and tiny floating paper birds.
+- Soft subtle bokeh, light leaks, dreamy depth — Pixar key-art / movie poster level cinematography.
+- Color palette: warm cream + soft navy + golden orange + dusty rose. Brand-aligned (#3F4F8A navy, #F4A261 orange, #F5EFE6 cream).
+
+═══ LIGHTING ═══
+- Warm golden-hour rim-light from upper-right
+- Soft blue ambient fill from lower-left
+- Polaroid catches a soft top-light
+- Pixar character has a clear hero-rim around silhouette
+
+═══ TYPOGRAPHY (rendered into the image) ═══
+- Two SMALL eyebrow labels above each subject (do NOT make them billboards):
+  - Above polaroid (left): "GERÇEK" — small caps, wide tracking, warm gray, clean humanist sans-serif (Inter/DM Sans), 9-11pt.
+  - Above Pixar character (right): "KAHRAMAN" — same treatment, slightly highlighted in orange.
+- ONE bottom headline, large, premium, EDITORIAL DISPLAY SERIF (Fraunces / Recoleta / Cormorant feel — warm rounded serif with personality, NOT cold Times, NOT geometric sans):
+  "Her çocuk kendi hikayesinin **kahramanıdır**."
+  - "Her çocuk kendi hikayesinin" in deep warm brown (#3F2A1A) regular serif weight
+  - "kahramanıdır" in italic + warm golden-orange (#D17A2C), with a small subtle hand-drawn underline flourish beneath it
+  - Sentence anchored centered at the bottom, balanced air above and below
+- Turkish diacritics PERFECT: ş ğ ü ö ç ı İ — no missing dots, no substitutions, no duplicate letters.
+- Headline appears EXACTLY ONCE in the image, no duplications.
+
+═══ STYLE ═══
+- Pixar movie key-art quality, "transformation moment" cinematography, premium editorial photography hybrid.
+- Mood: magical, warm, aspirational — "your child becomes a story hero" feeling.
+- This is THE marketing hero image for the product page; must look catalogue-ready, not amateur AI.
+
+═══ ABSOLUTE RULES ═══
+- 2:3 portrait format (DO NOT change).
+- Single unified scene; NO hard vertical 50/50 line.
+- Same child face on both sides.
+- Same clothing colors on both sides (real on left, Pixar-ified on right).
+- Headline rendered EXACTLY ONCE, perfect Turkish.
+- No watermarks, no logos, no brand names, no product packshot.`;
+
+  const imageUrl = await generateImage(prompt, [realPhotoRef, frontCoverRef], "2:3");
+  return { imageUrl, prompt };
+}

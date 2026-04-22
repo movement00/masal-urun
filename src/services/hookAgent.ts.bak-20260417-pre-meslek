@@ -1,14 +1,8 @@
 import { generateImage } from "./geminiClient";
 import type { BookConcept } from "../types";
 import type { Category } from "../categories";
-import { getMeslekProfileFromTitle, type MeslekProfile } from "./conceptAgent";
-import { BOOK_FORMAT_DIRECTIVE } from "./coverAgent";
 
 function pick<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
-
-function detectMeslekProfile(concept: BookConcept): MeslekProfile | null {
-  return getMeslekProfileFromTitle(concept.kahraman.kiyafet) || getMeslekProfileFromTitle(concept.baslik);
-}
 
 // Boyama-specific hook scenes — child ACTIVELY coloring the book, not reading/eating/sleeping.
 const BOYAMA_HOOK_SURFACES = [
@@ -107,28 +101,6 @@ const HOOK_SCENES = [
   },
 ];
 
-// Meslek-specific hook scenes — child in dress-up profession uniform at home with the book nearby.
-// The emotional hook: "my child is already living the dream thanks to this book."
-const MESLEK_HOOK_SCENES = [
-  {
-    label: "Mesleği Oynarken",
-    scene: (c: BookConcept, profile: MeslekProfile | null) => {
-      const meslek = profile?.labelTR || "meslek";
-      const uniform = profile?.uniformEN || c.kahraman.kiyafet;
-      const tools = profile?.toolsEN || "profession tools";
-      return `Warm iPhone candid photo: the child (from reference photo — EXACT same child, same face) in their bedroom or playroom, wearing a small dress-up ${meslek.toLowerCase()} uniform (${uniform}), ACTING OUT the profession with toys/stuffed animals as "patients/teammates/customers". ${tools} in hand mid-action. The THIN FLEXIBLE personalized book "${c.baslik}" is open on the floor or table, open to an illustration showing the same scene the child is acting out — as if drawing inspiration from the book in real-time. Playful pretend-play energy, natural window light, authentic "my kid plays this all day" moment.`;
-    },
-  },
-  {
-    label: "Kitapla Hayal Kurarken",
-    scene: (c: BookConcept, profile: MeslekProfile | null) => {
-      const meslek = profile?.labelTR || "meslek";
-      const meslekTools = profile?.toolsEN || "profession-specific props";
-      return `Warm cozy iPhone photo: the child (from reference photo — EXACT same child) curled up in a reading nook or on the couch, holding the THIN FLEXIBLE personalized book "${c.baslik}" open, completely absorbed — eyes wide, dreaming. Next to them: a small ${meslek.toLowerCase()} costume laid out neatly (waiting to be worn), and 1-2 small ${meslek.toLowerCase()}-related physical props (chosen ONLY from this profession's tools: ${meslekTools}). Do NOT include props or costumes from other professions. Soft afternoon light, peaceful "mom spotted her in her own world" candid feeling. Book cover facing the camera clearly visible. The image captures the LINK between dreaming (book) and becoming (the props waiting).`;
-    },
-  },
-];
-
 /**
  * Generates ONE hook/kanca lifestyle photo — child naturally living with the book.
  * Uses the real-child reference photo for face consistency.
@@ -140,13 +112,7 @@ export async function generateHookVisual(
   category?: Category
 ): Promise<{ imageUrl: string; prompt: string; label: string }> {
   const isBoyama = category?.group === "boyama";
-  const isMeslek = category?.id === "meslek-hikayeleri";
-  const meslekProfile = isMeslek ? detectMeslekProfile(concept) : null;
-  const hook = isBoyama
-    ? pick(BOYAMA_HOOK_SCENES)
-    : isMeslek
-      ? (() => { const h = pick(MESLEK_HOOK_SCENES); return { label: h.label, scene: (c: BookConcept) => h.scene(c, meslekProfile) }; })()
-      : pick(HOOK_SCENES);
+  const hook = isBoyama ? pick(BOYAMA_HOOK_SCENES) : pick(HOOK_SCENES);
   const prompt = `${hook.scene(concept)}
 
 PHOTO QUALITY:
@@ -163,7 +129,11 @@ PHOTO QUALITY:
 - The child is holding OUR product, not a random storybook
 - If you draw a generic fantasy cover or different title, the image is WRONG
 
-${BOOK_FORMAT_DIRECTIVE}
+═══ BOOK FORMAT — MAGAZINE STYLE, NEVER HARDCOVER (CRITICAL) ═══
+- Format: THIN FLEXIBLE A4 PAPERBACK, magazine-style, saddle-stitched. Soft bendy paper cover, no rigid spine.
+- DEFINITELY NOT hardcover, NOT thick spine, NO embossed title, NO leather/cloth cover, NO rigid binding.
+- Think: thin children's magazine or large soft picture book — flexible, light, can be rolled gently.
+- If you draw a hardcover, thick book, leather binding or rigid spine, the image is WRONG.
 
 - This should look like an Instagram-worthy family moment`;
 
@@ -183,9 +153,6 @@ export async function generateTransformationVisual(
 ): Promise<{ imageUrl: string; prompt: string }> {
   if (category?.group === "boyama") {
     return generateBoyamaTransformationVisual(concept, realPhotoRef, frontCoverRef);
-  }
-  if (category?.id === "meslek-hikayeleri") {
-    return generateMeslekTransformationVisual(concept, realPhotoRef, frontCoverRef);
   }
   const prompt = `Cinematic Pixar-style "transformation" key-art for the personalized children's book "${concept.baslik}" — 2:3 portrait, premium product listing photo, single unified composition (NOT a hard split).
 
@@ -285,67 +252,6 @@ async function generateBoyamaTransformationVisual(
 - The right character MUST be visibly half line-art + half colored — if fully colored OR fully B/W, the image is WRONG.
 - Headline rendered EXACTLY ONCE, perfect Turkish.
 - No watermarks, no logos, no brand names, no product packshot.`;
-
-  const imageUrl = await generateImage(prompt, [realPhotoRef, frontCoverRef], "2:3");
-  return { imageUrl, prompt };
-}
-
-// Meslek version — real child photo → same child reborn as the PROFESSIONAL, proudly holding the diploma.
-async function generateMeslekTransformationVisual(
-  concept: BookConcept,
-  realPhotoRef: string,
-  frontCoverRef: string
-): Promise<{ imageUrl: string; prompt: string }> {
-  const profile = detectMeslekProfile(concept);
-  const meslekLabel = profile?.labelTR || "Meslek";
-  const uniformEN = profile?.uniformEN || concept.kahraman.kiyafet;
-  const toolsEN = profile?.toolsEN || "";
-  const diplomaTitle = profile?.diplomaTitle || "KAHRAMAN SERTİFİKASI";
-
-  const prompt = `Cinematic Pixar-style "dream-to-reality transformation" key-art for the personalized children's book "${concept.baslik}" — 2:3 portrait, premium product listing image, single unified composition (NOT a hard split).
-
-═══ PROFESSION IDENTITY (READ FIRST, CRITICAL) ═══
-This book is specifically about ${concept.kahraman.isim} as a ${meslekLabel}. ONLY ${meslekLabel} context on the right side. The right character must be a ${meslekLabel} — NOT a footballer, doctor, dancer, astronaut, chef, vet, or any other profession unless the profession IS ${meslekLabel}. Uniform, tools, diploma, and background must all be ${meslekLabel}.
-
-CONCEPT: "the real child on the left grows into the ${meslekLabel} of their dreams on the right — the book is the bridge."
-
-═══ COMPOSITION — seamless magical blend (NO HARD 50/50 SPLIT) ═══
-- LEFT half: a small modern Instax-mini polaroid frame floating mid-air, holding the REAL child photo (from FIRST reference image — EXACT same child, same face, same clothing as in the photo). Polaroid slightly tilted ~6°, mild film grain, no text on the polaroid.
-- CENTER: a magical horizontal stream of golden-orange sparkle dust + glowing micro-stars + ${profile?.sparkleAccent || "warm profession-matched particles"} flowing from the polaroid TOWARD the right side. This stream IS the visual transformation; no hard divider.
-- RIGHT half: the SAME child, reborn as a 3D Pixar/Disney-style ${meslekLabel}. CRITICAL: wearing the profession uniform EXACTLY as specified: ${uniformEN}. Recognizable face: same hair color, same eye color, same skin tone, same gender as the real photo. The character stands in a proud, confident hero pose, gentle smile, eye contact with the viewer. Profession tools visible: ${toolsEN}. A soft warm GOLDEN HALO rim-lights the character.
-- IN THE CHILD'S HANDS ON THE RIGHT: they proudly hold a small ornate parchment DIPLOMA showing the text "${diplomaTitle}" in calligraphic serif — as if freshly received.
-
-═══ BACKGROUND — cinematic atmosphere ═══
-- An OPEN STORYBOOK lies horizontally at the bottom of the frame, slightly out of focus, pages glowing soft warm light from inside. The polaroid + sparkle stream + Pixar character "rise from the book" — the book IS the source of the transformation.
-- Above and behind: ${profile?.backdropHint || "soft warm dusk-sky atmosphere"} — never too distracting.
-- Soft subtle bokeh, light leaks, dreamy depth — Pixar key-art / movie poster level cinematography.
-- Color palette: warm cream + soft navy + golden orange + profession accent color. Brand-aligned (#3F4F8A navy, #F4A261 orange, #F5EFE6 cream).
-
-═══ TYPOGRAPHY (rendered into the image) ═══
-- Two SMALL eyebrow labels:
-  - Above polaroid (left): "BUGÜN" — small caps, wide tracking, warm gray, clean humanist sans-serif, 9-11pt.
-  - Above Pixar character (right): "HAYALİNDEKİ" — same treatment, slightly highlighted in orange.
-- ONE bottom headline, large, premium EDITORIAL DISPLAY SERIF (Fraunces / Cormorant feel):
-  "Hayalinin **kahramanı** ol."
-  - "Hayalinin" in deep warm brown (#3F2A1A) regular serif weight
-  - "kahramanı" in italic + warm golden-orange (#D17A2C), with a small subtle hand-drawn underline flourish beneath it
-  - "ol." in the same brown, adding a confident period
-  - Sentence anchored centered at the bottom
-- Turkish diacritics PERFECT: ş ğ ü ö ç ı İ. Headline appears EXACTLY ONCE.
-
-═══ STYLE ═══
-- Pixar movie key-art quality, aspirational transformation cinematography.
-- Mood: empowering, warm, dreamy — "your child will BECOME this."
-- This is THE marketing hero image for a meslek-kahramanlari product; must look catalogue-ready.
-
-═══ ABSOLUTE RULES ═══
-- 2:3 portrait format (DO NOT change).
-- Single unified scene; NO hard vertical 50/50 line.
-- Same child face on both sides.
-- Right character's UNIFORM must match the profession exactly — if uniform is wrong or generic, the image is WRONG.
-- The diploma on the right must show "${diplomaTitle}" clearly.
-- Headline rendered EXACTLY ONCE, perfect Turkish.
-- No watermarks, no logos, no brand names.`;
 
   const imageUrl = await generateImage(prompt, [realPhotoRef, frontCoverRef], "2:3");
   return { imageUrl, prompt };

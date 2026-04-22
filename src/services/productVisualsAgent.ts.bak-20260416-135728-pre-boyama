@@ -1,0 +1,435 @@
+import { generateImage } from "./geminiClient";
+import type { BookConcept } from "../types";
+
+/**
+ * Flat-lay mockup — book lying flat with lifestyle props, top-down view
+ */
+export async function generateFlatLay(
+  concept: BookConcept,
+  frontCoverRef: string
+): Promise<{ imageUrl: string; prompt: string }> {
+  const prompt = `Top-down flat-lay product photograph of a thin soft-cover A4 children's storybook "${concept.baslik}".
+
+LAYOUT: Bird's-eye view (directly from above), the book lies FLAT in the center of the frame.
+
+THE BOOK: THIN FLEXIBLE PAPERBACK — magazine-style, saddle-stitched. NOT hardcover, NOT thick spine, NO embossed title. The front cover MUST reproduce the reference image artwork EXACTLY: same title "${concept.baslik}", same character illustration, same colors, same typography. If you draw a different cover, image is WRONG. A4 size, thin bendy paper cover.
+
+PROPS AROUND THE BOOK (arranged aesthetically):
+- Colored pencils (scattered naturally, warm tones)
+- A small plush toy (bunny or bear, soft and cute)
+- A few dried flowers or a small succulent
+- A warm cup of cocoa/milk (small, ceramic, cute)
+- A pair of tiny children's glasses (optional, for charm)
+- Small star-shaped confetti or sparkle stickers scattered lightly
+- A small handwritten note card saying "Seninle başlıyor ✨"
+
+SURFACE: Clean warm cream/beige linen tablecloth or light wooden table. Natural texture visible.
+
+LIGHTING: Bright soft natural daylight from above-left. Gentle shadows. Clean and airy.
+
+STYLE: Instagram-worthy product flat-lay. Professional e-commerce photography. Warm, inviting, premium but playful. Think Papier or Rifle Paper Co product shots.
+
+TECHNICAL: Sharp focus on the book, slight natural vignette. Clean bright image. No text overlays. 2:3 portrait format.`;
+
+  const imageUrl = await generateImage(prompt, [frontCoverRef], "2:3");
+  return { imageUrl, prompt };
+}
+
+/**
+ * Open book interior — showing illustrated pages inside
+ */
+export async function generateOpenBook(
+  concept: BookConcept,
+  frontCoverRef: string
+): Promise<{ imageUrl: string; prompt: string }> {
+  const { baslik, kahraman, sahneler } = concept;
+  const scene = sahneler[1] || sahneler[0] || "magical adventure scene";
+
+  const prompt = `Product photograph of the children's storybook "${baslik}" lying OPEN, showing an interior illustrated spread.
+
+THE OPEN BOOK: A4 THIN FLEXIBLE PAPERBACK (magazine-style, NOT hardcover) opened to a middle page. Visible thin flexible paper — no rigid spine, no hardback. Two illustrated pages visible side by side. Character art style must match the reference cover image.
+
+LEFT PAGE: A vivid 3D Pixar-style illustration showing the character ${kahraman.isim} in "${scene}". The character matches the cover art from the reference image. Colorful, detailed, magical scene.
+
+RIGHT PAGE: SHORT and SIMPLE Turkish story text — MAX 2 short paragraphs (3-4 sentences TOTAL). Child-friendly vocabulary, LARGE readable font size, plenty of white space. The child's name "${kahraman.isim}" appears 1-2 times in bold. Think picture book — minimal text, easy to read. NOT a wall of text, NOT a novel. Warm cream paper texture, clean children's book typography.
+
+SETTING: The book lies on a clean warm surface (light wood desk or cream blanket). Slightly angled to show page depth. A child's hand gently touching the bottom corner of a page (as if turning it).
+
+LIGHTING: Warm soft natural light. Pages well-lit and readable. Slight page shadow at the spine.
+
+STYLE: Professional book interior preview photograph. Shows the customer exactly what the inside looks like. Premium quality printing visible. Clean, bright, inviting.
+
+TECHNICAL: Sharp focus on the book pages. Background softly blurred. 2:3 portrait format.`;
+
+  const imageUrl = await generateImage(prompt, [frontCoverRef], "2:3");
+  return { imageUrl, prompt };
+}
+
+/**
+ * Gift box presentation — book emerging from MasalSensin gift box
+ */
+export async function generateGiftBox(
+  concept: BookConcept,
+  frontCoverRef: string
+): Promise<{ imageUrl: string; prompt: string }> {
+  const prompt = `Beautiful gift presentation photograph of the children's storybook "${concept.baslik}" in a premium gift box.
+
+THE GIFT BOX: A beautiful cream/white magnetic closure gift box with a warm orange ribbon/bow. The box is OPEN, lid tilted back, revealing the book inside nestled in cream tissue paper. The book MUST be a THIN FLEXIBLE PAPERBACK (magazine-style, NOT hardcover) with the cover reproducing the reference image EXACTLY — same title "${concept.baslik}", same artwork, same colors. Not a generic storybook.
+
+DETAILS:
+- Tissue paper: soft cream, slightly crinkled naturally
+- A small "MasalSensin" branded card or tag attached to the ribbon
+- Small dried flower sprig or a tiny sparkle star tucked beside the book
+- The book peeks out invitingly — "unwrap me" feeling
+
+SETTING: Clean warm surface (marble, light wood, or cream linen). Soft natural window light from the side. Warm golden tones.
+
+MOOD: "The perfect gift." Premium, thoughtful, special. This photo should make someone think "I want to give THIS to someone I love." Gift-giving joy.
+
+STYLE: Luxury gift brand photography (think Jo Malone, Mejuri unboxing). Clean, warm, premium. Instagram-worthy unboxing moment.
+
+TECHNICAL: Sharp focus on box + book, background softly blurred. Warm color grading. 2:3 portrait format.`;
+
+  const imageUrl = await generateImage(prompt, [frontCoverRef], "2:3");
+  return { imageUrl, prompt };
+}
+
+/**
+ * Spec labels page — the book centered with 4 premium trust badges around it.
+ * Clean product spec composition: pages, paper, personalization, gift packaging.
+ */
+export async function generateSpecLabels(
+  concept: BookConcept,
+  frontCoverRef: string
+): Promise<{ imageUrl: string; prompt: string }> {
+  const prompt = `MODERN PRODUCT SPEC COMPOSITION — 2:3 portrait format.
+
+Place the personalized children's book "${concept.baslik}" SMALL in the CENTER (~22-26% frame width, front cover matching the reference image exactly, thin flexible paperback, FLAT cover no perspective distortion). Around the book, 4 modern flat trust cards are arranged in a 2x2 grid — two stacked on the left of the book, two stacked on the right (balanced).
+
+Above the book add small title "Her Kitabımızda" in deep navy (#3F4F8A) geometric sans (medium weight). Book is SUPPORTING the cards — cards are the heroes.
+
+═══ DİL KURALI (MUTLAK) ═══
+Kartların ÜZERİNDEKİ HER KELİME TÜRKÇE olmalı. HİÇBİR İngilizce kelime olmamalı — "PAGES", "PAPER", "SPECIAL", "GIFT", "QUALITY" gibi kelimeler YASAK. Sadece verilen Türkçe metinleri birebir yaz. Türkçe diacritic'ler (Ü, Ş, İ, Ç, Ğ, Ö) MUTLAKA doğru yazılmalı.
+
+═══ 4 KART TASARIMI (modern, premium, zengin) ═══
+
+Her kart ~30% frame genişliği, yumuşak yuvarlak köşe (20-24px), 2x2 grid düzeni, aralarında bolca boşluk (~6-8% frame).
+
+TASARIM SİSTEMİ:
+- Her kartın üst yarısında BÜYÜK dairesel ikon kutucuğu (kartın içinde merkez-üst, çap ~40% kart yüksekliği), arka rengi kart ana renginden farklı kontrast renk, ikon beyaz ya da kart rengi
+- Kartın alt yarısında: büyük rakam veya anahtar kelime (çok bold, 1-2 satır) + altında açıklama satırı
+- Tipografi: modern premium sans-serif (Inter, DM Sans, Nunito Bold). Rakam/anahtar kelime: 900 weight. Açıklama: 500 weight.
+- Hafif gradient backgrounds (düz tek renk değil), soft shadow (8-16px blur, 6% opacity), iç spacing bol
+
+KART 1 (üst-sol):
+- Ana renk: pastel lavanta-mavi (#E8ECFA)
+- İkon kutusu: koyu lacivert (#3F4F8A), içinde beyaz minimal kitap ikonu
+- Büyük metin: "24-32" (çok iri, lacivert)
+- Altında: "SAYFA" (büyük harf, küçük, lacivert)
+- En altında tek satır: "her kitap özenle hazırlanır"
+
+KART 2 (üst-sağ):
+- Ana renk: pastel şeftali-krem (#FAEBE0)
+- İkon kutusu: sıcak turuncu (#F4A261), içinde beyaz minimal kağıt/sayfa ikonu
+- Büyük metin: "170 gr"
+- Altında: "KUŞE KAĞIT"
+- En altında tek satır: "premium baskı kalitesi"
+
+KART 3 (alt-sol):
+- Ana renk: pastel teal-krem (#E4F1EC)
+- İkon kutusu: koyu teal (#3F7A6C), içinde beyaz minimal kıvılcım/yıldız ikonu
+- Büyük metin: "KİŞİYE ÖZEL"
+- Altında: "%100"
+- En altında tek satır: "çocuğunun adıyla yazılır"
+
+KART 4 (alt-sağ):
+- Ana renk: pastel gül (#F7E4E4)
+- İkon kutusu: sıcak terracota (#C46A5B), içinde beyaz minimal hediye kutusu ikonu
+- Büyük metin: "HEDİYE"
+- Altında: "KUTULU"
+- En altında tek satır: "şık ambalajla teslim"
+
+Tüm kart metinleri yukarıda verilen Türkçe metinlerle birebir eşleşmeli. Hiç ek İngilizce kelime eklenmemeli.
+
+═══ BACKGROUND ═══
+- Warm cream / soft linen gradient (#FDF8F0 → #F5EFE6)
+- Very subtle paper texture
+- Optional small decorative elements in the far corners (faded star, tiny dotted trail)
+- Clean and spacious — the book and badges are the heroes
+
+═══ LIGHTING ═══
+- Bright soft natural daylight from the upper-left
+- Gentle warm shadows
+- No harsh highlights, no gloss — matte premium feel
+
+═══ COMPOSITION RULES ═══
+- 2:3 portrait
+- Book in center, SMALL (~22-26% frame width) — just a supporting anchor, NOT the hero
+- 4 cards flank the book, 2 on each side, each ~30% frame width
+- Cards are larger than the book
+- No watermark, no website URL, no English words
+
+CATALOG-READY spec visual — clean modern editorial look.`;
+
+  const imageUrl = await generateImage(prompt, [frontCoverRef], "2:3");
+  return { imageUrl, prompt };
+}
+
+// Kept for backwards compat (not wired in orchestrator — uses generateSpecLabels now)
+export async function generatePrintQuality(
+  concept: BookConcept,
+  frontCoverRef: string
+): Promise<{ imageUrl: string; prompt: string }> {
+  const prompt = `PREMIUM MACRO CLOSE-UP PRODUCT PHOTOGRAPH — 2:3 portrait format.
+
+SUBJECT: a close-up detail shot of the interior of the personalized children's book "${concept.baslik}" — showing the PAPER quality and PRINT quality.
+
+═══ COMPOSITION ═══
+- Macro / close-up framing: only a small portion of an open book page fills the frame
+- A thumb or index finger at the edge of the page, gently pinching or turning the page corner — this reveals the PAPER THICKNESS (~170gr kuşe / coated art paper)
+- Visible layers: the front page in sharp focus (you can see the paper edge, its slight sheen, vivid ink), another page slightly behind showing continued illustration
+- Slight top-down camera angle, shallow depth of field
+
+═══ THE PAPER ═══
+- THICK premium matte-coated kuşe art paper (~170gr / 170gsm)
+- Slight natural sheen at grazing light — NOT glossy/shiny, NOT plain copy paper, clearly a PREMIUM coated card-stock used in quality children's books
+- The paper edge is visibly thicker than regular printer paper but still flexible (magazine-style softcover, not cardboard)
+- Texture: smooth to the touch, no visible fibers, high-end print feel
+
+═══ THE PRINT ═══
+- Vivid, saturated colors from a Pixar-style illustration (matching the cover reference character style)
+- Ink sits richly on the paper — blacks are deep, colors are punchy but not over-saturated
+- Sharp crisp detail at macro range — you can see the fine line quality
+- NO pixelation, NO banding, NO muddy color
+
+═══ LIGHTING ═══
+- Warm natural diffused light from the upper-left
+- Gentle highlight on the paper's top edge to accentuate thickness
+- Soft shadow underneath (depth), no harsh flash
+- Warm color grading — cozy, inviting, premium
+
+═══ TEXT OVERLAY (ONE small stylish label, top-right or bottom-right corner) ═══
+"170 gr Kuşe Kağıt · Canlı Renkler"
+Style: clean elegant modern sans-serif, warm brown (#5D4037), small size (~2% of frame), subtle drop shadow, NOT dominating the image. This is a spec label, not a big banner.
+
+═══ ABSOLUTE RULES ═══
+- 2:3 portrait format
+- Macro close-up — NOT a wide product shot, NOT the full book, NOT a flat-lay
+- The PAPER and PRINT are the hero — not the character
+- A real human finger/thumb visible at page edge (for scale + tactile feel)
+- Warm premium product photography (iPhone 15 Pro portrait mode feel)
+- Perfect Turkish diacritics on the label (ş, ğ)
+- NO watermarks, NO logos, NO brand names beyond the small spec label`;
+
+  const imageUrl = await generateImage(prompt, [frontCoverRef], "2:3");
+  return { imageUrl, prompt };
+}
+
+/**
+ * Personal note page (sender → child) — random sender persona + AI-generated body
+ * tied to the specific book's mood/theme. Each generation gives a different note.
+ */
+
+const SENDER_POOL: Array<{ key: string; hitap: (n: string) => string; signoff: string }> = [
+  { key: "anne+baba", hitap: (n) => `Canım ${n}`,        signoff: "Seni çok seven,\nAnnen ve Baban ❤️" },
+  { key: "anne",      hitap: (n) => `Canım ${n}`,        signoff: "Seni çok seven,\nAnnen ❤️" },
+  { key: "baba",      hitap: (n) => `Oğlum ${n}`,        signoff: "Seninle gurur duyan,\nBaban ❤️" },
+  { key: "anneanne",  hitap: (n) => `Canım torunum ${n}`, signoff: "Seni çok seven,\nAnneannen ❤️" },
+  { key: "babaanne",  hitap: (n) => `Canım torunum ${n}`, signoff: "Seni çok seven,\nBabaannen ❤️" },
+  { key: "dede",      hitap: (n) => `Canım torunum ${n}`, signoff: "Seni çok seven,\nDeden ❤️" },
+  { key: "teyze",     hitap: (n) => `Canım yeğenim ${n}`, signoff: "Seni çok seven,\nTeyzen ❤️" },
+  { key: "hala",      hitap: (n) => `Canım yeğenim ${n}`, signoff: "Seni çok seven,\nHalan ❤️" },
+  { key: "dayi",      hitap: (n) => `Canım yeğenim ${n}`, signoff: "Seni çok seven,\nDayın ❤️" },
+  { key: "amca",      hitap: (n) => `Canım yeğenim ${n}`, signoff: "Seni çok seven,\nAmcan ❤️" },
+];
+
+function pickSender(): { key: string; hitap: (n: string) => string; signoff: string } {
+  return SENDER_POOL[Math.floor(Math.random() * SENDER_POOL.length)];
+}
+
+async function generateNoteBody(concept: BookConcept, senderKey: string): Promise<string> {
+  const { generateText } = await import("./geminiClient");
+  const senderHuman: Record<string, string> = {
+    "anne+baba": "anne ve baba", anne: "anne", baba: "baba",
+    anneanne: "anneanne", babaanne: "babaanne", dede: "dede",
+    teyze: "teyze", hala: "hala", dayi: "dayı", amca: "amca",
+  };
+  const persona = senderHuman[senderKey] || "aile büyüğü";
+  const prompt = `${concept.kahraman.isim} adında ${concept.kahraman.yas} yaşında bir Türk çocuğu için kişiye özel bir kitap yazdık. Kitap "${concept.baslik}" — temasi: ${concept.mood}. Özet: ${concept.ozet}. Kazanımları: ${concept.kazanimlar.slice(0, 3).join(", ")}.
+
+GÖREV: Bu kitabın ilk sayfasına eklenecek bir not yaz. Notu YAZAN kişi ${persona} olacak. Çocuğa ${persona === "anne ve baba" ? "ikisinden" : "kendisinden"} duygusal, sıcak, samimi bir mektup gibi olmalı.
+
+KURAL:
+- 3-4 kısa paragraf, toplam 4-7 cümle
+- Çocuğun adı (${concept.kahraman.isim}) en az 1 kez geçsin
+- Hikayenin temasına HAFIF bir gönderme olsun (örnek: kitap macera ise "her macerada yanındayız", uyku ise "her gece rüyalarında" gibi)
+- Aşırı klişe değil, gerçek bir aile büyüğünün el yazısıyla yazdığı doğal bir not havası
+- Türkçe karakterler MUTLAKA doğru: ş ç ğ ü ö ı İ
+- Klişe başlangıçlar yasak ("Canım kızım..." gibi başlama, doğrudan duyguyla başla)
+- "Bu kitap özel..." gibi giriş cümlesi kullan ama mutlaka yeniden yorumla, kopyala-yapıştır gibi olmasın
+- ÇIKTI: SADECE not metni (hitap ve imza zaten ayrı, onları yazma)`;
+
+  const text = await generateText(prompt);
+  return text.trim().slice(0, 800);
+}
+
+export async function generateNotePage(
+  concept: BookConcept
+): Promise<{ imageUrl: string; prompt: string }> {
+  const { kahraman } = concept;
+  const name = kahraman.isim;
+  const sender = pickSender();
+  const hitap = sender.hitap(name);
+
+  let body: string;
+  try {
+    body = await generateNoteBody(concept, sender.key);
+  } catch (e) {
+    // Fallback to safe static body if AI fails
+    body = `Bu kitap senin için özel olarak hazırlandı. Çünkü dünyada senden daha özel bir çocuk yok.\n\nTıpkı bu hikâyedeki gibi, sen de her gün biraz daha büyüyorsun. Bazen zorlanırsın — ama biz her zaman yanındayız.\n\nSenin gözlerindeki ışığı görmek bizim için en güzel şey.`;
+  }
+  const signoff = sender.signoff;
+
+  const prompt = `CHILDREN'S STORYBOOK PERSONAL NOTE PAGE — 2:3 portrait format. FLAT FULL PAGE — the page IS the stationery paper, filling the entire frame edge to edge. No table, no background surface.
+
+THE PAGE: Beautiful aged cream/ivory vintage stationery paper with warm subtle texture. Slightly yellowed corners, gentle aged feel. The paper fills the ENTIRE frame.
+
+TOP: An ornate wax seal with a heart in the center, warm burgundy color, positioned top-center. Below it a delicate decorative line.
+
+LETTER TEXT — written in GENUINE HANDWRITTEN dark brown ink:
+"""
+${hitap},
+
+${body}
+
+${signoff}
+"""
+
+LANGUAGE: ALL text MUST be in TURKISH. Do NOT translate to English. Write EXACTLY as provided above.
+
+TYPOGRAPHY:
+1. "${hitap}" — large flowing elegant cursive at top, dark brown ink, personal and warm
+2. The child name "${name}" — bolder with more ink pressure wherever it appears
+3. Body — genuine warm handwriting, dark brown (#3E2723), natural organic flow, slightly uneven baselines, generous 1.8x line spacing
+4. Signature — larger stylized calligraphic handwriting with small hand-drawn heart
+5. Turkish characters (ş ç ğ ü ö ı İ) MUST be PERFECT
+
+DECORATIVE DETAILS ON THE PAPER:
+- Top center: wax seal with heart (burgundy)
+- Top right corner: a tiny hand-painted watercolor star
+- Bottom left: a small watercolor golden star
+- Bottom right: a beautiful vintage fountain pen lying diagonally with a tiny ink drop
+- Very subtle delicate pencil-sketch vine decorations along left margin
+
+CRITICAL:
+- FLAT full bleed — paper IS the page, no table, no 3D perspective
+- The handwriting must feel REAL and WARM
+- ALL TEXT IN TURKISH — do NOT translate
+
+ART STYLE: Photorealistic vintage stationery, genuine handwritten letter aesthetic. Warm, intimate, personal.`;
+
+  const imageUrl = await generateImage(prompt, [], "2:3");
+  return { imageUrl, prompt };
+}
+
+/**
+ * Story flow — 4-panel storyboard showing the book's plot progression
+ */
+export async function generateStoryboard(
+  concept: BookConcept,
+  frontCoverRef: string
+): Promise<{ imageUrl: string; prompt: string }> {
+  const { baslik, kahraman, sahneler } = concept;
+  const panels = [
+    sahneler[0] || "the beginning of the adventure",
+    sahneler[1] || sahneler[0] || "discovering the challenge",
+    sahneler[2] || sahneler[1] || "the key moment",
+    sahneler[3] || sahneler[sahneler.length - 1] || "the happy ending",
+  ];
+
+  const prompt = `Premium 4-panel STORY FLOW key-art for the personalized children's book "${baslik}" — 2:3 portrait, single unified composition.
+
+LAYOUT: A 2×2 grid of 4 cinematic Pixar-style mini scenes showing the story's progression from beginning to end. Each panel ~48% × 48% of the frame, separated by clean warm-cream gutters (~3% thick).
+
+CHARACTER CONSISTENCY (CRITICAL): In ALL 4 panels, the same child ${kahraman.isim} appears — identical face, hair, clothing, and age across panels, matching the reference cover image EXACTLY (same Pixar-style stylization). If the character looks different between panels, image is WRONG.
+
+═══ 4 PANELS (in reading order: top-left → top-right → bottom-left → bottom-right) ═══
+
+PANEL 1 — "Başlangıç" (top-left): ${panels[0]}
+  Mood: curious/wonder. Soft morning light.
+
+PANEL 2 — "Keşif" (top-right): ${panels[1]}
+  Mood: discovery/excitement. Warm golden light.
+
+PANEL 3 — "Dönüm Noktası" (bottom-left): ${panels[2]}
+  Mood: tension/bravery. Dramatic rim lighting.
+
+PANEL 4 — "Mutlu Son" (bottom-right): ${panels[3]}
+  Mood: joy/triumph. Golden-hour warm glow.
+
+═══ PANEL LABELS ═══
+Each panel has a SMALL eyebrow label in the top-left corner of the panel:
+- Panel 1: "1 • BAŞLANGIÇ"
+- Panel 2: "2 • KEŞİF"
+- Panel 3: "3 • DÖNÜM NOKTASI"
+- Panel 4: "4 • MUTLU SON"
+Style: small caps, wide tracking, warm cream on a subtle dark pill badge, ~9-11pt, humanist sans (Inter/DM Sans).
+
+═══ HEADER (top of the full image, above the grid) ═══
+Turkish text: "Hikayenin Akışı"
+Style: medium editorial serif (Fraunces/Recoleta feel), warm brown (#3F2A1A), centered, ~24pt.
+
+═══ FOOTER (bottom of the full image, below the grid) ═══
+Small center text: "${baslik}" in italic warm golden-orange (#D17A2C), humble accent.
+
+═══ STYLE ═══
+- Cinematic Pixar/Disney CGI quality per panel
+- Consistent warm color palette across all 4 panels: warm cream + soft navy + golden orange + dusty rose
+- Each panel has subtle soft rounded corners (~12px)
+- Overall background: warm cream #F5EFE6 with very subtle paper texture
+- Turkish diacritics PERFECT: ş ğ ü ö ç ı İ
+
+═══ ABSOLUTE RULES ═══
+- 2:3 portrait format
+- 4 distinct scenes, NOT repeated
+- Same child face across all 4 panels
+- Clean grid, clean labels, readable header
+- No watermarks, no logos, no brand names`;
+
+  const imageUrl = await generateImage(prompt, [frontCoverRef], "2:3");
+  return { imageUrl, prompt };
+}
+
+/**
+ * Front + Back cover together — showing both covers in elegant composition
+ */
+export async function generateCoverDuo(
+  concept: BookConcept,
+  frontCoverRef: string,
+  backCoverRef: string
+): Promise<{ imageUrl: string; prompt: string }> {
+  const prompt = `Elegant product photograph showing BOTH the front cover AND back cover of the children's storybook "${concept.baslik}" as an OVERLAPPING STACK — front on the LEFT, back on the RIGHT.
+
+BOOK FORMAT — MAGAZINE STYLE, FLAT AND STRAIGHT:
+- Each book is a thin flexible A4 magazine-style paperback, saddle-stitched. FLAT cover, NO bending, NO curling, NO curving, NO wavy paper, NO warped pages. The books sit STRAIGHT and RIGID in the photo as if freshly printed.
+- Definitely NOT hardcover, NOT thick spine, NO embossed title, NO rigid binding. If you draw a hardcover or bent book, image is WRONG.
+
+LAYOUT — overlapping stack composition:
+- FRONT COVER on the LEFT: the hero book. Standing straight upright, closest to camera, fully visible, razor-sharp, the title rendered EXACTLY ONCE on the cover (never duplicated). Covers the left 50-55% of the book area.
+- BACK COVER on the RIGHT: positioned slightly BEHIND the front but SHIFTED RIGHT so that ~45-50% of the back cover is VISIBLE to the right of the front cover. The right half of the back cover must clearly show the "Masal Bitti Ama İzleri Kaldı..." header AND the 2x2 achievement/kazanım grid, clean and readable.
+- The books OVERLAP at the left edge of the back cover — the front book covers the left ~50-55% of the back book. They are stacked close together, tilted at a subtle matching angle (5-10° toward camera) for depth.
+- CRITICAL: front is on the LEFT, back is on the RIGHT. Back cover peeks out generously on the right (close to half visible) so the buyer can read its content.
+
+Both book covers MUST match the reference images exactly — first reference = front (LEFT, dominant), second reference = back (RIGHT, ~half visible). Reproduce EACH cover's title/text EXACTLY ONCE — never repeat, never duplicate.
+
+SETTING: Clean warm cream surface with subtle linen/paper texture. A few tasteful decorative elements — sparkle confetti, a dried flower, tiny stars, soft fairy-light bokeh far in the background. Uncluttered.
+
+LIGHTING: Bright warm natural light from the top-left. Both covers well-lit and readable. Soft natural shadows showing the books' flat thin profile.
+
+STYLE: Premium editorial publishing product shot. Flat magazine look, not hand-held-notebook look.
+
+TECHNICAL: Both covers sharp and legible. Turkish text perfect (diacritics intact). Each title appears ONLY ONCE on its cover. Warm color grading. 2:3 portrait format.`;
+
+  const imageUrl = await generateImage(prompt, [frontCoverRef, backCoverRef], "2:3");
+  return { imageUrl, prompt };
+}

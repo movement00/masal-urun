@@ -8,6 +8,7 @@ import { getMeslekProfileFromTitle, type MeslekProfile } from "./conceptAgent";
 // This is CRITICAL because image models default to hardcover novels if not forced.
 export const BOOK_FORMAT_DIRECTIVE = `═══ BOOK FORMAT — THIN MAGAZINE-STYLE PAPERBACK (CRITICAL) ═══
 This product is a THIN FLEXIBLE MAGAZINE-STYLE PAPERBACK — think National Geographic Kids, a children's activity magazine, or a school workbook. It is NOT a hardcover book.
+- A physical format reference image (thin softcover magazine) may be provided AS REFERENCE ONLY for book thickness and paper type. Do NOT copy its artwork, colors, characters, or title — use it ONLY to anchor the book's physical thinness and soft-cover feel.
 - THICKNESS: approximately 3-5mm total — very thin, like a magazine, NEVER like a novel or chapter book
 - COVER: soft flexible paper, bendy, you could roll it up like a magazine. Cover paper is a single thin sheet of matte or soft-gloss cardstock — NOT a rigid cardboard board
 - NO visible binding details: do NOT draw staples, do NOT draw stitches, do NOT draw glue lines. Just a clean, simple paper edge — the binding is not rendered.
@@ -320,11 +321,10 @@ CINEMATIC CHILDREN'S STORYBOOK COVER — 2:3 portrait format, thin flexible maga
 
 ═══ TITLE TYPOGRAPHY (integrated into the scene) ═══
 "${baslik}"
-- Title should INTERACT with the scene — letters behind a tree branch, sitting on clouds, glowing softly, partially hidden by foreground element
-- WORD ORDER IS ABSOLUTE: render the title in the EXACT order written above ("${baslik}"). The first word ("${(baslik || "").split(" ")[0]}") sits AT THE TOP / FIRST in reading order; subsequent words follow BELOW or to the RIGHT in normal Turkish reading flow (top-to-bottom, left-to-right). NEVER reorder, NEVER put the last word above the first. If the title wraps to multiple lines, the wrap respects the original order.
-- Character's name (the FIRST word "${(baslik || "").split(" ")[0]}") in playful HAND-LETTERED cursive script with warm color (gold/coral/rose) + decorative flourishes — placed FIRST in reading order.
-- Rest of the title (the words AFTER the name) in chunky friendly display font with contrasting weight — placed AFTER the cursive name in normal reading flow.
-- NOT a separate text block floating above — PART of the world, but ONE coherent title (name first, rest after)
+- Title should INTERACT with the scene — letters behind a tree branch, sitting on clouds, glowing with magic, partially hidden by foreground element
+- Character's name in playful HAND-LETTERED script with warm color + decorative flourishes
+- Rest of the title in chunky friendly display font with contrasting weight
+- NOT a separate text block floating above — PART of the world
 - Must still be clearly READABLE despite integration
 
 ═══ TURKISH CHARACTERS (CRITICAL) ═══
@@ -346,27 +346,6 @@ ${characterDesc}
 Turkish text: "Bu kitap ${kahraman.isim} için özel olarak üretilmiştir"
 Style: Premium gold foil seal (#D4A574) with subtle emboss effect — like a quality certification stamp. Small, bottom-left corner. Makes the book feel SPECIAL and PREMIUM.
 
-${(() => {
-  // Sidekick visibility — if the title mentions an animal companion or named creature,
-  // the cover MUST show that companion alongside the child. Otherwise the cover misrepresents
-  // the book's content (e.g. "Umut ve Minik Tosbağa" with no tortoise visible).
-  const titleLower = (baslik || "").toLowerCase();
-  const SIDEKICK_PATTERNS: Array<{ rx: RegExp; en: string; tr: string }> = [
-    { rx: /\b(tosba[gğ]a|tortoise)\b/i, en: "a small tan-brown patterned baby land tortoise (palm-sized) with domed shell", tr: "minik kara-tan kabuklu kaplumbağa" },
-    { rx: /\b(kedi|cat|minno[sş]|m[ıi]rnav|f[ıi]nd[ıi]k)\b/i, en: "the named cat companion mentioned in the title", tr: "adı geçen kedi" },
-    { rx: /\b(k[öo]pek|dog|pat[ıi])\b/i, en: "the named dog companion mentioned in the title", tr: "adı geçen köpek" },
-    { rx: /\b(tav[şs]an|rabbit|bunny|bulut)\b/i, en: "the named rabbit companion mentioned in the title", tr: "adı geçen tavşan" },
-    { rx: /\b(ku[şs]|bird|cik|c[ıi]v[ıi]l)\b/i, en: "the named small songbird companion mentioned in the title", tr: "adı geçen küçük kuş" },
-    { rx: /\b(kelebek|butterfly)\b/i, en: "the named butterfly companion mentioned in the title", tr: "adı geçen kelebek" },
-    { rx: /\b(kirpi|hedgehog|dikenli)\b/i, en: "the named hedgehog companion mentioned in the title", tr: "adı geçen kirpi" },
-    { rx: /\b(bal[ıi]k|fish)\b/i, en: "the named fish companion mentioned in the title", tr: "adı geçen balık" },
-    { rx: /\b(at|horse|tay)\b/i, en: "the named horse companion mentioned in the title", tr: "adı geçen at" },
-    { rx: /\b(hayvan|pet|dost)\b/i, en: "the named animal companion mentioned in the title", tr: "adı geçen hayvan dost" },
-  ];
-  const matched = SIDEKICK_PATTERNS.find(p => p.rx.test(titleLower));
-  if (!matched) return "";
-  return `\n═══ SIDEKICK VISIBILITY (CRITICAL) ═══\nThe title "${baslik}" names an animal/creature companion (${matched.tr}). The cover MUST CLEARLY show this companion alongside the child — NEVER omit them. Render the companion as ${matched.en}, visible beside the child or in the foreground/midground, gently interacting with the child (held in arms, sitting at feet, peeking from behind a flower, looking up at the child, etc.). The companion's species and key visual traits stay consistent throughout the book.\n`;
-})()}
 ${BOOK_FORMAT_DIRECTIVE}`;
 
   switch (category.visualStyle) {
@@ -419,6 +398,11 @@ export async function generateCoverImage(
   const prompt = getStylePromptForCategory(category, concept);
   const refs: string[] = [];
   if (realPhotoRef) refs.push(realPhotoRef);
+  // Append magazine format reference so the AI anchors cover thickness to a thin softcover shape.
+  // Used as NON-CONTENT reference — tells the model "book format looks like this physical object",
+  // not "copy this image". The prompt itself handles pose/title/character/colors.
+  const magazineRef = await loadMagazineFormatRefAsDataUrl();
+  if (magazineRef) refs.push(magazineRef);
   const imageUrl = await generateImage(prompt, refs, "2:3");
   return { imageUrl, prompt };
 }
@@ -439,6 +423,21 @@ async function loadLogoAsDataUrl(): Promise<string | null> {
   }
 }
 
+async function loadMagazineFormatRefAsDataUrl(): Promise<string | null> {
+  try {
+    const res = await fetch('/brand/magazine-format-ref.png');
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    return await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+}
 
 // Turkish possessive suffix ("X'nın/nin/nun/nün" with buffer-n for vowel-ending names).
 function turkishPossessive(name: string): string {

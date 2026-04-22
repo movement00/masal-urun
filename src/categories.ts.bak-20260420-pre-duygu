@@ -202,19 +202,6 @@ export const CATEGORIES: Category[] = [
     emoji: "🌟",
     moodKeywords: ["günlük rutin", "disiplin", "sorumluluk", "öz-bakım", "düzen", "saygı"],
   },
-
-  // ═══ DUYGU KONTROLLERİ — Çocuğun duygularını tanıyıp yönetmesini öğreten pedagojik kitaplar ═══
-  {
-    id: "duygu-kontrolleri",
-    group: "hikaye",
-    groupLabel: "Hikaye Kitapları",
-    name: "Duygu Kontrolleri",
-    description: "Öfke, korku, üzüntü, kıskançlık, kaygı — çocuğun kendi duygularını tanıyıp sağlıkla yönetmeyi öğrendiği duygusal zekâ kitabı.",
-    ageRange: "3-8",
-    visualStyle: "pixar-3d",
-    emoji: "💗",
-    moodKeywords: ["duygu", "öfke", "korku", "üzüntü", "kıskançlık", "kaygı", "öz-farkındalık", "duygusal zekâ"],
-  },
 ];
 
 export const CATEGORY_GROUPS = [

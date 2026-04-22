@@ -2,7 +2,7 @@ import { generateBookConcept, generateBookConceptFromPrompt } from "./conceptAge
 import { generateCharacterReferences } from "./characterReferenceAgent";
 import { generateCoverImage, generateBackCover } from "./coverAgent";
 import { generateHookVisual, generateTransformationVisual } from "./hookAgent";
-import { generateFlatLay, generateCoverDuo, generateNotePage, generateMeslekDiplomaPage } from "./productVisualsAgent";
+import { generateFlatLay, generateOpenBook, generateGiftBox, generateCoverDuo } from "./productVisualsAgent";
 import { generateSeoContent } from "./seoAgent";
 import { getPreviousTitles, saveBook } from "../lib/storage";
 import type { Category } from "../categories";
@@ -53,7 +53,7 @@ async function runPipeline(
 
   // STAGE 3: Back cover
   onProgress({ stage: "covers", message: "Arka kapak tasarlanıyor..." });
-  const { imageUrl: backUrl, prompt: backPrompt } = await generateBackCover(concept, frontUrl, category);
+  const { imageUrl: backUrl, prompt: backPrompt } = await generateBackCover(concept, frontUrl);
   const backCoverVisual: GeneratedVisual = {
     id: "back_cover", type: "back_cover", label: "Arka Kapak",
     imageUrl: backUrl, prompt: backPrompt,
@@ -62,7 +62,7 @@ async function runPipeline(
 
   // STAGE 4: Hook lifestyle (eating or sleeping with book)
   onProgress({ stage: "hook", message: "Yaşam anı görseli üretiliyor..." });
-  const hookResult = await generateHookVisual(concept, realPhoto, frontUrl, category);
+  const hookResult = await generateHookVisual(concept, realPhoto, frontUrl);
   const hookVisual: GeneratedVisual = {
     id: "hook_lifestyle", type: "hook_lifestyle", label: `Hook: ${hookResult.label}`,
     imageUrl: hookResult.imageUrl, prompt: hookResult.prompt,
@@ -71,7 +71,7 @@ async function runPipeline(
 
   // STAGE 5: Transformation (real → Pixar)
   onProgress({ stage: "hook", message: "Dönüşüm görseli üretiliyor..." });
-  const transResult = await generateTransformationVisual(concept, realPhoto, frontUrl, category);
+  const transResult = await generateTransformationVisual(concept, realPhoto, frontUrl);
   const transVisual: GeneratedVisual = {
     id: "transformation", type: "transformation", label: "Dönüşüm: Gerçek → Kahraman",
     imageUrl: transResult.imageUrl, prompt: transResult.prompt,
@@ -80,37 +80,28 @@ async function runPipeline(
 
   // STAGE 6: Product visuals (flat-lay, open book, gift box, cover duo)
   onProgress({ stage: "product", message: "Flat-lay ürün fotoğrafı üretiliyor..." });
-  const flatLayResult = await generateFlatLay(concept, frontUrl, category);
+  const flatLayResult = await generateFlatLay(concept, frontUrl);
   const flatLayVisual: GeneratedVisual = {
     id: "flat_lay", type: "flat_lay", label: "Flat-lay Ürün Fotoğrafı",
     imageUrl: flatLayResult.imageUrl, prompt: flatLayResult.prompt,
   };
   onProgress({ stage: "product", message: "✅ Flat-lay hazır", newVisual: flatLayVisual });
 
-
-
-  const noteLabel = category.group === "boyama"
-    ? "Tamamlandı Sertifikası"
-    : "Not Sayfası";
-  onProgress({ stage: "product", message: `${noteLabel} üretiliyor...` });
-  const noteResult = await generateNotePage(concept, category);
-  const noteVisual: GeneratedVisual = {
-    id: "note_page", type: "note_page", label: noteLabel,
-    imageUrl: noteResult.imageUrl, prompt: noteResult.prompt,
+  onProgress({ stage: "product", message: "Açık kitap iç sayfa üretiliyor..." });
+  const openBookResult = await generateOpenBook(concept, frontUrl);
+  const openBookVisual: GeneratedVisual = {
+    id: "open_book", type: "open_book", label: "Açık Kitap İç Sayfa",
+    imageUrl: openBookResult.imageUrl, prompt: openBookResult.prompt,
   };
-  onProgress({ stage: "product", message: `✅ ${noteLabel} hazır`, newVisual: noteVisual });
+  onProgress({ stage: "product", message: "✅ Açık kitap hazır", newVisual: openBookVisual });
 
-  // Meslek gets an EXTRA diploma page in addition to the personalized note
-  let diplomaVisual: GeneratedVisual | null = null;
-  if (category.id === "meslek-hikayeleri") {
-    onProgress({ stage: "product", message: "Diploma sayfası üretiliyor..." });
-    const diplomaResult = await generateMeslekDiplomaPage(concept, frontUrl);
-    diplomaVisual = {
-      id: "diploma_page", type: "note_page", label: "Diploma Sayfası",
-      imageUrl: diplomaResult.imageUrl, prompt: diplomaResult.prompt,
-    };
-    onProgress({ stage: "product", message: "✅ Diploma sayfası hazır", newVisual: diplomaVisual });
-  }
+  onProgress({ stage: "product", message: "Hediye kutusu sunumu üretiliyor..." });
+  const giftBoxResult = await generateGiftBox(concept, frontUrl);
+  const giftBoxVisual: GeneratedVisual = {
+    id: "gift_box", type: "gift_box", label: "Hediye Kutusu Sunumu",
+    imageUrl: giftBoxResult.imageUrl, prompt: giftBoxResult.prompt,
+  };
+  onProgress({ stage: "product", message: "✅ Hediye kutusu hazır", newVisual: giftBoxVisual });
 
   onProgress({ stage: "product", message: "Ön+arka kapak birlikte üretiliyor..." });
   const coverDuoResult = await generateCoverDuo(concept, frontUrl, backUrl);
@@ -125,25 +116,19 @@ async function runPipeline(
   const seo = await generateSeoContent(concept, category);
   onProgress({ stage: "seo", message: "✅ SEO içeriği hazır" });
 
-  const visuals: GeneratedVisual[] = [realPhotoVisual, frontCoverVisual, backCoverVisual, hookVisual, transVisual, flatLayVisual, noteVisual];
-  if (diplomaVisual) visuals.push(diplomaVisual);
-  visuals.push(coverDuoVisual);
-
   const book: GeneratedBook = {
     id: bookId,
     categoryId: category.id,
     category,
     concept,
-    visuals,
+    visuals: [realPhotoVisual, frontCoverVisual, backCoverVisual, hookVisual, transVisual, flatLayVisual, openBookVisual, giftBoxVisual, coverDuoVisual],
     seo,
     createdAt: Date.now(),
     status: "completed",
   };
 
   await saveBook(book);
-  // Expose to window for external scraping (puppeteer upload scripts)
-  try { (window as any).__lastBook = book; } catch { /* noop */ }
-  onProgress({ stage: "done", message: `🎉 ${visuals.length} görsel + SEO tamamlandı!` });
+  onProgress({ stage: "done", message: "🎉 9 görsel + SEO tamamlandı!" });
   return book;
 }
 
@@ -153,11 +138,8 @@ export async function generateNewBook(
   onProgress: ProgressCallback
 ): Promise<GeneratedBook> {
   onProgress({ stage: "concept", message: "Kitap konsepti oluşturuluyor..." });
-  const local = await getPreviousTitles(category.id);
-  const extra = ((window as any).__extraPreviousTitles as string[] | undefined) || [];
-  const banned = ((window as any).__bannedWords as string[] | undefined) || [];
-  const previousTitles = [...new Set([...local, ...extra])];
-  const concept = await generateBookConcept(category, previousTitles, banned);
+  const previousTitles = await getPreviousTitles(category.id);
+  const concept = await generateBookConcept(category, previousTitles);
   onProgress({ stage: "concept", message: `✅ Konsept hazır: "${concept.baslik}"`, concept });
 
   return runPipeline(concept, category, onProgress);

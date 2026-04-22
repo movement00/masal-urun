@@ -23,7 +23,10 @@ export interface GeneratedVisual {
     | "front_cover"
     | "back_cover"
     | "hook_lifestyle"
-    | "transformation";
+    | "transformation"
+    | "flat_lay"
+    | "note_page"
+    | "cover_duo";
   label: string;
   imageUrl: string;
   prompt: string;
@@ -38,6 +41,18 @@ export interface SeoContent {
   kazanimlar: { baslik: string; aciklama: string }[];
   nedenBuKitap: string;
   hediyeOlarak: string;
+  altTexts?: {
+    realPhoto: string;
+    frontCover: string;
+    backCover: string;
+    hookLifestyle: string;
+    transformation: string;
+    flatLay?: string;
+    notePage?: string;
+    coverDuo?: string;
+  };
+  faq?: { soru: string; cevap: string }[];
+  slug?: string;
 }
 
 export interface GeneratedBook {
@@ -58,6 +73,7 @@ export type GenerationStage =
   | "real_photo"
   | "covers"
   | "hook"
+  | "product"
   | "seo"
   | "done"
   | "error";

@@ -18,17 +18,7 @@ const SCENES = [
   "sitting on a bright green lawn having a picnic, colorful blanket, fruits and snacks, warm sunshine — OUTDOOR, BRIGHT",
   "at a cheerful outdoor birthday party, colorful balloons and bunting, bright natural daylight, festive — OUTDOOR, BRIGHT",
   "in a bright sunlit balcony with potted flowers, city view behind, warm morning light on face — OUTDOOR, BRIGHT",
-  "in a sunny backyard with swing set and chalk drawings on the ground, cheerful daylight — OUTDOOR, BRIGHT",
-  "at a bright city square with fountain behind, warm afternoon sun casting gentle shadows, cheerful urban scene — OUTDOOR, BRIGHT",
-  "on a sunlit wooden dock by a calm lake, small boats in distance, warm morning light — OUTDOOR, BRIGHT",
-  "in a bright autumn park with red and golden leaves on ground, crisp sunny day — OUTDOOR, BRIGHT",
-  "at a cheerful outdoor wedding garden with string lights catching sunset, warm glow — OUTDOOR, BRIGHT",
-  "on a sunny hilltop with rolling green hills behind, arms open feeling the wind, golden hour — OUTDOOR, BRIGHT",
-  "at a bright strawberry field with rows of red berries, warm summer sunlight — OUTDOOR, BRIGHT",
-  "in a cozy sunlit living room with big window streaming warm natural light, clean modern — INDOOR, BRIGHT",
-  "in a bright child's bedroom with colorful posters and soft natural light from window, cheerful morning — INDOOR, BRIGHT",
-  "at a bright sunlit library corner with shelves of books behind, warm reading-light glow — INDOOR, BRIGHT",
-  "in a bright modern kitchen with sunlight streaming in, warm breakfast scene, cozy morning — INDOOR, BRIGHT",
+  "at a vibrant farmers market, colorful produce stalls behind, bright daylight, cheerful busy scene — OUTDOOR, BRIGHT",
 ];
 
 const ACTIONS = [
@@ -42,16 +32,6 @@ const ACTIONS = [
   "giving a thumbs up with a confident happy grin — clear hand visible",
   "sitting with hands in lap, looking at camera with a sweet curious tilt of the head — NO props",
   "running toward the camera with arms open and a big laugh — action shot, joyful",
-  "peeking out from behind something (tree, column) with playful mischievous smile — hands empty",
-  "holding hand up near face making a cute 'peace' sign with two fingers — hands visible",
-  "mid-spin with dress or clothes flowing outward, laughing with pure joy — action blur",
-  "tilted back laughing at something off-camera, genuine belly laugh moment — hands free",
-  "crouched playing with small object (stone, leaf) concentrating with soft smile — innocent moment",
-  "standing on tiptoes reaching up toward something unseen, curious expression — hands reaching",
-  "hands on hips in a confident 'superhero' pose with a cheeky grin — empowered stance",
-  "sitting cross-legged on the ground looking up at camera with bright curious eyes — calm pose",
-  "clapping hands excitedly with a wide open-mouth smile — expression of pure delight",
-  "pointing at something with one finger with excited surprised face — 'look!' moment",
 ];
 
 const DEFECTS = [
@@ -172,8 +152,6 @@ This child is a ${gender}. ${gender === "boy" ? "He must clearly look like a BOY
 
 THE CHILD — MUST BE ADORABLE AND UNIQUELY INDIVIDUAL:
 - ${kahraman.yas}-year-old Turkish ${gender}
-- AGE-ACCURATE PROPORTIONS (CRITICAL — do NOT render older than stated age):
-  * ${kahraman.yas <= 3 ? `This is a TODDLER (age ${kahraman.yas}). Head-to-body ratio about 1:4 (larger head relative to body). Round chubby cheeks, soft baby fat on face, small button nose, tiny rosebud mouth, short stubby fingers, shorter legs. Clearly visibly a toddler — NOT a 5-year-old, NOT a kindergartener. Think "baby-toddler" features: hair still fine and thin, eyes large on a round face, no adult-like bone structure yet.` : kahraman.yas <= 5 ? `This is a PRESCHOOLER (age ${kahraman.yas}). Head-to-body ratio about 1:5. Still round cheeks but slimming a bit. Clearly a small child — NOT a 7-year-old.` : kahraman.yas <= 7 ? `This is an EARLY-SCHOOL child (age ${kahraman.yas}). Head-to-body ratio about 1:5.5-1:6. Lean face, more defined features, still childlike. NOT a tween.` : `This is an OLDER CHILD (age ${kahraman.yas}). Head-to-body ratio about 1:6-1:6.5. More defined bone structure, leaner proportions, taller.`}
 - SPECIFIC PHYSICAL FEATURES (MUST render EXACTLY as described — this is what makes THIS child different from other children):
   * ${variedPhysical}
 - EVERYDAY CLOTHING: ${everydayClothing}

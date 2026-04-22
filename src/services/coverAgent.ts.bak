@@ -1,0 +1,209 @@
+import { generateImage } from "./geminiClient";
+import type { Category } from "../categories";
+import type { BookConcept } from "../types";
+// CharacterReference import removed — now takes raw string URL
+
+function getStylePromptForCategory(category: Category, concept: BookConcept): string {
+  const { baslik, kahraman, sahneler } = concept;
+  const firstScene = sahneler[0] || "";
+
+  const isBoy = /erkek/i.test(kahraman.cinsiyet);
+  const characterDesc = `The character is ${kahraman.isim}, a ${kahraman.yas}-year-old Turkish ${isBoy ? "BOY (must clearly look male)" : "GIRL (must clearly look female)"}. Use the reference iPhone photos to match the child's face, hair, skin tone, and proportions EXACTLY — but stylize them. Wearing: ${kahraman.kiyafet}.`;
+
+  const baseInstructions = `
+CINEMATIC CHILDREN'S STORYBOOK COVER — 2:3 portrait format, thin flexible magazine-style softcover book (NOT hardcover). This cover must look like a FRAME FROM A PIXAR FILM — cinematic quality, emotional depth, visually stunning.
+
+═══ CINEMATIC COMPOSITION (3-layer depth) ═══
+- FOREGROUND: Scene elements close to camera — leaves, rocks, grass, objects — slightly blurred, adding depth
+- MIDGROUND: The CHARACTER in a DYNAMIC ACTION POSE — NOT standing still, NOT looking at camera. Caught mid-moment: reaching, running, discovering, climbing, gasping in wonder
+- BACKGROUND: Rich environment — sky, trees, ocean, mountains, city — setting the world, slightly soft focus
+- This 3-layer approach creates CINEMATIC DEPTH like a Pixar film frame
+
+═══ CINEMATIC LIGHTING (emotion through light) ═══
+- Golden hour rim light on the character (warm glow outlining hair and shoulders)
+- Volumetric light beams (sunlight filtering through trees, dust particles visible)
+- A MAGICAL LIGHT SOURCE in the scene matching the story theme (glowing map, enchanted object, bioluminescent creature)
+- Light = emotion: warm golden = adventure/nostalgia, cool blue = mystery, purple/pink = magic
+- NOT flat even lighting — dramatic, cinematic, directional
+
+═══ TITLE TYPOGRAPHY (integrated into the scene) ═══
+"${baslik}"
+- Title should INTERACT with the scene — letters behind a tree branch, sitting on clouds, glowing with magic, partially hidden by foreground element
+- Character's name in playful HAND-LETTERED script with warm color + decorative flourishes
+- Rest of the title in chunky friendly display font with contrasting weight
+- NOT a separate text block floating above — PART of the world
+- Must still be clearly READABLE despite integration
+
+═══ TURKISH CHARACTERS (CRITICAL) ═══
+"${baslik}" spelled EXACTLY letter by letter.
+- ı (dotless i) ≠ i | İ (dotted cap I) ≠ I | ş ≠ s | ç ≠ c | ğ ≠ g | ö ≠ o | ü ≠ u
+- Mixed case as provided. "Macerası" NOT "MACERASI"
+
+═══ CONTRAST RULE ═══
+Title MUST be readable against scene. Use: text shadow, glow outline, or light/dark contrast. If scene is dark → light warm text. If light → dark navy text with subtle shadow.
+
+═══ CHARACTER (emotion-first) ═══
+${characterDesc}
+- CHARACTER'S FACIAL EXPRESSION is the FOCAL POINT of the cover
+- The emotion on their face should tell the story: wide-eyed wonder, brave determination, joyful discovery, curious fascination
+- Character caught in ACTION — never static, never posed for camera
+- Dynamic pose that hints at the story: reaching for something, mid-step, looking up in awe
+
+═══ PERSONALIZATION BADGE ═══
+Turkish text: "Bu kitap ${kahraman.isim} için özel olarak üretilmiştir"
+Style: Premium gold foil seal (#D4A574) with subtle emboss effect — like a quality certification stamp. Small, bottom-left corner. Makes the book feel SPECIAL and PREMIUM.
+
+═══ BOOK FORMAT ═══
+- THIN soft-cover, magazine-style, flexible — NOT hardcover, NOT thick
+- Visible as a flat illustrated cover page (2:3 portrait)
+- No 3D mockup perspective, no page curl — flat print-ready cover`;
+
+  switch (category.visualStyle) {
+    case "pixar-3d":
+      return `${baseInstructions}
+
+ART STYLE: CINEMATIC 3D Pixar/Disney CGI — like a key frame from a Pixar feature film.
+- Stylized 3D CGI (Encanto / Coco / Luca quality — NOT cheap mobile game graphics)
+- Character face based on reference photos but Pixar-ified: bigger expressive eyes, softer rounder features, exaggerated emotion
+- CINEMATIC SCENE (not flat backdrop): ${firstScene} — render as a FULL 3D WORLD with depth, atmosphere, particles
+- Volumetric lighting: golden hour rim light on character + ambient fill + magical light source
+- Rich textures: fabric folds on clothing, individual hair strands, skin subsurface scattering
+- Environmental storytelling: small details in the scene that hint at the adventure
+- Mood conveyed through LIGHT AND COLOR: ${concept.mood}
+- NO anime, NO 2D flat, NO cheap 3D, NO static posed character
+
+THIS COVER SHOULD MAKE SOMEONE STOP SCROLLING AND SAY "I WANT THIS FOR MY CHILD."
+
+CRITICAL: The title "${baslik}" must appear ONLY ONCE on the cover — at the TOP. Do NOT write the title twice. Do NOT repeat any text. ONE title, ONE badge, ONE cover.
+
+Category: ${category.name} — ${category.description}`;
+
+    case "coloring-simple":
+      return `${baseInstructions.replace(/COMPOSITION.*$/s, "")}
+
+ART STYLE: Simple black-and-white coloring book cover for ages 2-5.
+- BOLD thick BLACK outlines on WHITE background
+- Character outline based on reference photo (simplified to chunky shapes)
+- Only TITLE and BADGE can have color (bright playful)
+- Very simple shapes, large basic forms
+- Character outline only, NO shading, NO color fill
+- Simplified scene: ${firstScene} (basic shapes only)
+
+This is a COLORING BOOK cover — toddler-friendly, high clarity.`;
+
+    case "coloring-detailed":
+      return `${baseInstructions.replace(/COMPOSITION.*$/s, "")}
+
+ART STYLE: Detailed black-and-white coloring book cover for ages 6-10.
+- Medium BLACK outlines on WHITE background
+- Character and scene outlines based on reference photo (detailed but uncolored)
+- Only TITLE and BADGE can have color
+- Intricate patterns, textures, decorative elements
+- Scene: ${firstScene} (detailed line art)
+
+This is a detailed COLORING BOOK cover for older children.`;
+
+    case "gift-emotional":
+      return `${baseInstructions}
+
+ART STYLE: Emotional gift book cover — 3D Pixar character + warm gift atmosphere.
+- Character face from reference photos, Pixar-stylized
+- Warm heartwarming atmosphere with gift elements (ribbons, hearts, soft glow)
+- Pastel warm colors, gold highlights, magical soft lighting
+- Character expressing love/celebration matching: ${category.moodKeywords.join(", ")}
+- Simple children's book presentation (not complex poster)
+- Scene: ${firstScene}
+
+GIFT BOOK — appeals to both children AND parents/grandparents buying it.`;
+
+    default:
+      return baseInstructions;
+  }
+}
+
+export async function generateCoverImage(
+  category: Category,
+  concept: BookConcept,
+  realPhotoRef?: string
+): Promise<{ imageUrl: string; prompt: string }> {
+  const prompt = getStylePromptForCategory(category, concept);
+  const refs = realPhotoRef ? [realPhotoRef] : [];
+  const imageUrl = await generateImage(prompt, refs, "2:3");
+  return { imageUrl, prompt };
+}
+
+export async function generateBackCover(
+  concept: BookConcept,
+  frontCoverUrl: string
+): Promise<{ imageUrl: string; prompt: string }> {
+  const { baslik, kahraman, ozet, kazanimlar } = concept;
+
+  // Build kazanım pairs for 2x2 grid (max 4, with emoji)
+  const kazanimEmojis = ["💛", "🩵", "🌟", "🧡", "💪"];
+  const kazanimGrid = kazanimlar.slice(0, 4).map((k, i) => {
+    return `${kazanimEmojis[i] || "✨"} ${k}`;
+  }).join("\n");
+
+  // Story summary — max 3 sentences
+  // Truncate at last complete sentence within 250 chars (never end with "...")
+  let summary = ozet;
+  if (ozet.length > 250) {
+    const cut = ozet.slice(0, 250);
+    const lastPeriod = cut.lastIndexOf('.');
+    summary = lastPeriod > 100 ? cut.slice(0, lastPeriod + 1) : cut.slice(0, 247) + '...';
+  }
+
+  const prompt = `CHILDREN'S STORYBOOK BACK COVER PAGE — 2:3 portrait format. FLAT full-bleed print-ready back cover of a thin soft-cover Turkish children's storybook.
+
+This is the REVERSE SIDE of the front cover shown in the reference image. Same book, same visual language, same art style.
+
+LANGUAGE: ALL text on this page MUST be in TURKISH. Do NOT translate any Turkish text to English. Write EXACTLY as provided below.
+
+HEADER (display this EXACT Turkish text): "Masal Bitti Ama İzleri Kaldı..."
+Style: large elegant decorative bold font at top, warm brown color (#4E342E).
+
+STORY SUMMARY (display this EXACT Turkish text):
+"${summary}"
+Style: elegant readable serif, dark brown (#5D4037), centered, max 3 lines.
+
+SECTION HEADING (display this EXACT Turkish text): "NE ÖĞRENDİ?"
+Style: bold playful display font, centered, warm orange (#E65100).
+
+ACHIEVEMENTS (display as a 2×2 grid with emoji icons and subtle card frames, ALL IN TURKISH):
+${kazanimGrid}
+Style: each achievement in a subtle rounded card/frame. Emoji icon on left, text on right. Clean readable sans-serif.
+
+FOOTER LINE (display this EXACT Turkish text): "Her çocuk kendi hikâyesinin kahramanıdır..."
+Style: elegant italic warm script font, warm orange (#BF360C).
+
+BRAND SECTION at very bottom:
+- Small book/magic icon illustration
+- "www.masalsensin.com" in elegant small font
+- Small personalization badge: "Bu kitap ${kahraman.isim} için özel olarak hazırlanmıştır ❤️"
+
+CHARACTER: Same character from front cover as a small cute 3D illustration peeking from the bottom-left corner with a happy confident smile. The character must have the EXACT SAME face as in the front cover reference. Small and subtle, NOT dominating the page.
+
+DESIGN:
+- Soft warm cream to light peach gradient background
+- Subtle themed watercolor decorations at edges (matching front cover theme)
+- Clean, elegant, premium book quality
+- Warm brown and orange color palette for text
+- The achievements section has subtle card/frame around each item
+- Gentle decorative vine/leaf borders at top and bottom edges
+
+TYPOGRAPHY:
+- Header "Masal Bitti...": large decorative bold serif, warm brown (#4E342E)
+- Summary: elegant readable serif, dark brown (#5D4037)
+- "NE ÖĞRENDİ?": bold playful display font, warm orange (#E65100)
+- Achievement items: readable sans-serif with emoji icons
+- Footer quote: elegant italic script, warm orange (#BF360C)
+- Turkish characters (ş ç ğ ü ö ı İ) MUST be PERFECT — do NOT replace with ASCII
+- Brand: small elegant serif
+
+ART STYLE: Premium children's book back cover. Clean, warm, professional. Mix of elegant typography and minimal 3D character illustration. Text and achievements are the STARS — not the character.
+
+Title reference: "${baslik}"`;
+
+  const imageUrl = await generateImage(prompt, [frontCoverUrl], "2:3");
+  return { imageUrl, prompt };
+}

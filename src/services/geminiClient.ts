@@ -56,6 +56,32 @@ export async function generateText(
   });
 }
 
+/**
+ * Deep thinking text generation — uses thinking budget + optional web search.
+ * For multi-step agent reasoning (concept brainstorm, strategy, etc.)
+ */
+export async function generateTextDeep(
+  prompt: string,
+  options: { thinking?: number; search?: boolean } = {}
+): Promise<string> {
+  return _withRetry(async () => {
+    const ai = getClient();
+    const config: any = {};
+    if (options.thinking) {
+      config.thinkingConfig = { thinkingBudget: options.thinking };
+    }
+    if (options.search) {
+      config.tools = [{ googleSearch: {} }];
+    }
+    const response = await ai.models.generateContent({
+      model: ANALYSIS_MODEL,
+      contents: prompt,
+      config,
+    });
+    return response.text || "";
+  });
+}
+
 async function withRetry<T>(fn: () => Promise<T>, maxRetries: number = 3): Promise<T> {
   let lastError: any;
   for (let i = 0; i <= maxRetries; i++) {
@@ -76,7 +102,7 @@ async function withRetry<T>(fn: () => Promise<T>, maxRetries: number = 3): Promi
   throw lastError;
 }
 
-export async function generateImage(
+async function generateImageGemini(
   prompt: string,
   referenceImages: string[] = [],
   aspectRatio: string = "2:3"
@@ -115,4 +141,33 @@ export async function generateImage(
     if (!imagePart?.inlineData) throw new Error("Görsel oluşturulamadı");
     return `data:image/png;base64,${imagePart.inlineData.data}`;
   });
+}
+
+// Public wrapper: try Gemini first, fall back to KIE.ai when rate-limited or quota exhausted.
+export async function generateImage(
+  prompt: string,
+  referenceImages: string[] = [],
+  aspectRatio: string = "2:3"
+): Promise<string> {
+  try {
+    return await generateImageGemini(prompt, referenceImages, aspectRatio);
+  } catch (e: any) {
+    const msg = String(e?.message || e || "").toLowerCase();
+    const isQuota =
+      msg.includes("429") ||
+      msg.includes("rate") ||
+      msg.includes("quota") ||
+      msg.includes("resource_exhausted") ||
+      msg.includes("exhaust");
+    if (!isQuota) throw e;
+
+    console.warn("[geminiClient] Gemini rate-limited — falling back to KIE.ai");
+    const { kieGenerateImage } = await import("./kieClient");
+    try {
+      return await kieGenerateImage(prompt, referenceImages, aspectRatio);
+    } catch (kerr: any) {
+      console.error("[geminiClient] KIE fallback also failed:", kerr?.message || kerr);
+      throw new Error(`Both Gemini (rate-limited) and KIE failed: ${kerr?.message || kerr}`);
+    }
+  }
 }
